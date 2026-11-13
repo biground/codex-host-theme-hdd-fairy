@@ -26,6 +26,15 @@ https://github.com/biground/codex-host-theme-hdd-fairy#v1.0.3-codexhost.11
 
 当前版本为 `1.0.3-codexhost.11`，适配验证环境为 **CodexHost Web 0.18.0-beta.5 / Windows / Chromium**。本扩展面向 Web 界面。
 
+已在隔离的真实 CodexHost Web 中，通过「界面扩展」安装框填入公开仓库地址，完成安装、启用、视觉／交互回归与停用清理检查。
+
+<details>
+<summary>安装后在界面扩展列表中的显示效果</summary>
+
+![安装完成后的 H.D.D + Fairy 扩展条目，打开右侧开关即可启用](./docs/screenshots/extension-installed.png)
+
+</details>
+
 ## 预览
 
 以下截图使用合成工作区与测试会话。
