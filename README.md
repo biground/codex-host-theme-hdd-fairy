@@ -19,12 +19,12 @@ https://github.com/biground/codex-host-theme-hdd-fairy
 需要固定版本时，输入带 tag 的地址：
 
 ```text
-https://github.com/biground/codex-host-theme-hdd-fairy#v1.0.3-codexhost.11
+https://github.com/biground/codex-host-theme-hdd-fairy#v1.0.3-codexhost.12
 ```
 
 也可以从 [Releases](https://github.com/biground/codex-host-theme-hdd-fairy/releases) 下载 `.tgz`，在同一个安装框中输入运行 CodexHost 的电脑上的文件绝对路径。
 
-当前版本为 `1.0.3-codexhost.11`，适配验证环境为 **CodexHost Web 0.18.0-beta.5 / Windows / Chromium**。本扩展面向 Web 界面。
+当前版本为 `1.0.3-codexhost.12`，适配验证环境为 **CodexHost Web 0.18.0-beta.5 / Windows / Chromium**。本扩展面向 Web 界面。
 
 已在隔离的真实 CodexHost Web 中，通过「界面扩展」安装框填入公开仓库地址，完成安装、启用、视觉／交互回归与停用清理检查。
 
@@ -48,6 +48,15 @@ https://github.com/biground/codex-host-theme-hdd-fairy#v1.0.3-codexhost.11
 ![蓝白消息气泡与局部浅色 Agent 内容](./docs/screenshots/conversation.png)
 
 <details>
+<summary>Telegram 风格的问答引用</summary>
+
+![原问题引用与回答正文](./docs/screenshots/question-reply.png)
+
+<img src="./docs/screenshots/question-reply-phone.png" alt="窄屏问答引用" width="390" />
+
+</details>
+
+<details>
 <summary>查看侧栏与窄屏效果</summary>
 
 ![侧栏分组、高亮与展开状态](./docs/screenshots/sidebar.png)
@@ -61,6 +70,7 @@ https://github.com/biground/codex-host-theme-hdd-fairy#v1.0.3-codexhost.11
 - **H.D.D 欢迎页**：透明标志、保持比例的网状球体、「空洞深潜系统」及浅灰英文背景字，按浏览器本地时间显示早上／中午／晚上问候。
 - **暗色碳纤维面板**：静态 CSS 斜纹与暗角，侧栏的置顶、各工作区和最近会话独立分框；选中会话显示黄色渐变与红色标记，展开／收起工作区使用不同颜色的圆环图标。
 - **聊天气泡**：用户蓝底白字；Agent 白底深色文字、Fairy 图标，正文、引用、代码和表格采用局部浅色配色。继续使用原生流式渲染，宽表格在气泡内横向滚动。
+- **引用式问答回复**：回答 Agent 的原生异步问题后，蓝色气泡上方显示带左侧竖线的原问题引用，下方显示回答正文；长问题可展开／收起，多条问答分别排列。复制得到可读的问答文本。只识别完整且有效的原生问答消息，普通消息、代码示例、带附件或无法解析的内容继续使用原生显示；历史记录和发给模型的内容保持原样。
 - **输入控件**：绿色加号、紫色权限按钮、可发送时的黄色圈内箭头、不可发送时的红圈叉号、运行中的红圈方块，以及右上角的 `H.D.D ⚡ ON / OFF` 快速模式开关。
 - **Fairy 动画**：静音开机、居中问候、可拖动眼徽，以及跟随当前会话的待机／思考／运行／结束状态。点击眼徽查看当前会话状态。
 - **原生设置与清理**：在「设置 → Fairy」中调整显示、拖动、位置、外观和重播动画；停用后释放样式、主题 token、插槽、事件监听与资源路由。

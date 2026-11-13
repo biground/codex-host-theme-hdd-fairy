@@ -5,6 +5,7 @@ window.__ModuleLoader__.load({
   factory(require) {
     const React = require('react')
     const { createPortal } = require('react-dom')
+    const { writeClipboard, IconCopyOutlineRegular, IconCheckOutlineRegular } = require('@deepseek-ai/dsh-client-ui-primitives')
     const h = React.createElement
     const { useCallback, useEffect, useLayoutEffect, useRef, useState } = React
     const PKG = 'dsh-fairy-zzz'
@@ -18,6 +19,49 @@ window.__ModuleLoader__.load({
     }
     const readBool = (key, fallback) => typeof readStored(key, fallback) === 'boolean' ? readStored(key, fallback) : fallback
     const writeStored = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)) } catch {} }
+    // Presentation only: accept the complete native carrier, otherwise keep the native renderer.
+    function questionReplyPairs(content) {
+      if (!Array.isArray(content) || !content.length || content.some(part => part?.type !== 'text' || typeof part.text !== 'string')) return null
+      const text = content.map(part => part.text).join('')
+      const match = /^\s*<send_user_message_question_reply>\s*([\s\S]*?)\s*<\/send_user_message_question_reply>\s*$/.exec(text)
+      if (!match) return null
+      try {
+        const pairs = JSON.parse(match[1])
+        return Array.isArray(pairs) && pairs.length > 0 && pairs.every(pair => pair &&
+          typeof pair.questionItemId === 'string' && pair.questionItemId.trim() &&
+          typeof pair.question === 'string' && pair.question.trim() && typeof pair.answer === 'string') ? pairs : null
+      } catch { return null }
+    }
+
+    function QuestionReplyBubble({ node, pairs, useProjection }) {
+      const turn = node.location?.turn?.turn
+      const time = useProjection('codexhostTurnTimes', times => times?.[turn]?.start)
+      const [copied, setCopied] = useState(false)
+      useEffect(() => {
+        if (!copied) return
+        const timer = setTimeout(() => setCopied(false), 1500)
+        return () => clearTimeout(timer)
+      }, [copied])
+      const copy = () => {
+        const text = pairs.map(pair => pair.question + '\n' + pair.answer).join('\n\n')
+        void writeClipboard(text).then(ok => { if (ok) setCopied(true) })
+      }
+      return h('div', { className: 'fz3-reply-row', 'data-fz3-question-reply': '' },
+        h('div', { className: 'fz3-reply-bubble' }, pairs.map((pair, index) =>
+          h('div', { className: 'fz3-reply-pair', key: index },
+            h('details', { className: 'fz3-reply-quote' },
+              h('summary', { 'aria-label': '引用的问题，展开或收起' },
+                h('span', { className: 'fz3-reply-label' }, '回复 Agent'),
+                h('span', { className: 'fz3-reply-question' }, pair.question),
+                h('svg', { className: 'fz3-reply-chevron', viewBox: '0 0 16 16', width: 14, height: 14, 'aria-hidden': true },
+                  h('path', { d: 'm4 6 4 4 4-4', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6 })))),
+            h('p', { className: 'fz3-reply-answer' }, pair.answer || '（未填写）')))),
+        h('div', { className: 'fz3-reply-actions' },
+          Number.isFinite(time) ? h('time', { dateTime: new Date(time).toISOString() },
+            new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hour12: false }).format(time)) : null,
+          h('button', { type: 'button', className: 'fz3-reply-copy', 'aria-label': copied ? '已复制问答' : '复制问答',
+            title: copied ? '已复制问答' : '复制问答', onClick: copy }, h(copied ? IconCheckOutlineRegular : IconCopyOutlineRegular, { size: 16 }))))
+    }
     const notify = () => window.dispatchEvent(new CustomEvent('fz3:preferences'))
     const BLINK_MS = 300
     let lastGlitchAt = 0
@@ -739,6 +783,31 @@ html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"] .md-table-wide{
   --dsh-table-spare:0px;--dsh-table-lead:0px;box-sizing:border-box;width:100%;max-width:100%;margin-left:0;padding-left:0;
 }
 
+.fz3-reply-row{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}
+.fz3-reply-bubble{
+  --fz3-quote-bg:#3f6bff12;--fz3-quote-accent:#4775d2;
+  position:relative;box-sizing:border-box;min-width:0;max-width:min(calc(var(--dsh-chat-content-width,748px) * .702),82%);
+  padding:12px 14px;border-radius:18px;background:var(--dsw-specific-bubble);color:var(--dsw-alias-label-primary);
+  font-size:var(--dsh-content-font-size,14px);line-height:calc(22px + var(--dsh-content-font-delta,0px));overflow-wrap:anywhere;
+}
+html[data-fz3-theme="dark"] .fz3-reply-bubble{--fz3-quote-bg:#ffffff16;--fz3-quote-accent:#a9d3ff;background:#3853db;color:#fff}
+html[data-fz3-theme="dark"] .fz3-reply-bubble::after{content:"";position:absolute;right:-5px;top:16px;width:12px;height:12px;border-radius:2px;background:#3853db;transform:rotate(45deg);pointer-events:none}
+.fz3-reply-pair + .fz3-reply-pair{margin-top:14px}
+.fz3-reply-quote{min-width:0;margin:0 0 9px;border-inline-start:3px solid var(--fz3-quote-accent);border-radius:4px 9px 9px 4px;background:var(--fz3-quote-bg)}
+.fz3-reply-quote summary{position:relative;list-style:none;cursor:pointer;padding:7px 28px 8px 10px;outline-offset:3px;border-radius:inherit}
+.fz3-reply-quote summary::-webkit-details-marker{display:none}
+.fz3-reply-quote summary:focus-visible,.fz3-reply-copy:focus-visible{outline:2px solid var(--fz3-quote-accent,#8dbbff)}
+.fz3-reply-label{display:block;font-weight:650;font-size:.9em;line-height:1.5;color:var(--fz3-quote-accent)}
+.fz3-reply-question{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;white-space:pre-wrap;font-size:.94em;line-height:1.5;opacity:.92}
+.fz3-reply-quote[open] .fz3-reply-question{display:block}
+.fz3-reply-chevron{position:absolute;right:8px;top:10px;opacity:.75}
+.fz3-reply-quote[open] .fz3-reply-chevron{transform:rotate(180deg)}
+.fz3-reply-answer{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.fz3-reply-actions{display:flex;align-items:center;gap:10px;color:var(--dsw-alias-label-secondary);font-size:var(--dsh-content-font-size-secondary,13px)}
+.fz3-reply-copy{display:grid;place-items:center;width:28px;height:28px;padding:4px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer}
+.fz3-reply-copy:hover{background:var(--dsw-alias-interactive-bg-hover)}
+@media(max-width:600px){.fz3-reply-bubble{max-width:90%;padding:10px 12px}.fz3-reply-copy{width:44px;height:44px}}
+
 /* The host owns the hero/active phase. Decoration stays behind its composer. */
 html[data-fz3-theme="dark"] [data-conversation-content][data-content-phase="hero"]{
   position:relative;isolation:isolate;overflow:clip;
@@ -1366,6 +1435,16 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
           }
         })
         const mount = (name, spec, component) => ctx.slots.inject(name, () => ctx.slots.register({ name, ...spec }, component))
+        for (const key of ['user', 'steering']) {
+          const ReplyView = props => {
+            const pairs = questionReplyPairs(props.node?.data?.content)
+            if (pairs) return h(QuestionReplyBubble, { ...props, pairs })
+            // The native occupant may register after a new declaration lifetime begins.
+            const native = ctx.slots.entries('conversation.chat.node').find(entry => entry.options.key === key && entry.component !== ReplyView)
+            return native ? h(native.component, props) : null
+          }
+          mount('conversation.chat.node', { key, priority: -10, locale: 'chat' }, ReplyView)
+        }
         mount('sidebar.brand.mark', { id: 'fairy-zzz-brandmark', priority: 0 }, BrandMark)
         mount('sidebar.brand.name', { id: 'fairy-zzz-brandname', priority: 0 }, BrandName)
         mount('conversation.hero.brand.mark', { id: 'fairy-zzz-hero', priority: 0 }, HeroMark)

@@ -12,6 +12,12 @@ const repository = resolve(import.meta.dirname, '../../codex-host')
 const plugin = resolve(import.meta.dirname, '..')
 const evidence = resolve(import.meta.dirname, '../../output/playwright/fairy')
 const TOKEN = 'fairy-isolated-test-token'
+const questionReplies = [
+  { questionItemId: 'async-fixture-1', question: '下一步先优化哪个部分？', answer: '先优化引用样式。\n保留蓝底白字。' },
+  { questionItemId: 'async-fixture-2', question: '这是一个较长的问题，用于确认引用默认收起、点击后能展开完整内容。'.repeat(8), answer: '<img src=x onerror="window.__quoteInjected=true">\n多行回答也应按原样显示。' },
+]
+const questionReplyText = '<send_user_message_question_reply>\n' + JSON.stringify(questionReplies) + '\n</send_user_message_question_reply>'
+const malformedReply = '<send_user_message_question_reply>[{"questionItemId":"broken","question":"Invalid answer type","answer":42}]</send_user_message_question_reply>'
 const richReply = [
   '### Fairy checking in',
   '',
@@ -38,6 +44,19 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   Object.assign(host.inspection.catalog.models[0], { fastModel: { id: 'native-fast' } })
   const idle = host.add('fairy-idle', '/computer/fairy', 'Fairy idle session')
   const busy = host.add('fairy-busy', '/computer/fairy', 'Fairy running session')
+  const replies = host.add('fairy-replies', '/computer/fairy', 'Fairy quoted replies')
+  const replyPreview = host.add('fairy-reply-preview', '/computer/fairy', 'Fairy reply preview')
+  replyPreview.turns = [{ id: 'reply-preview-turn', status: 'completed', items: [
+    { id: 'reply-preview-user', type: 'userMessage', content: [{ type: 'text', text: '<send_user_message_question_reply>\n' + JSON.stringify([questionReplies[0]]) + '\n</send_user_message_question_reply>' }] },
+    { id: 'reply-preview-agent', type: 'agentMessage', text: '收到。原问题显示在引用条中，你的回答显示在下方。' },
+  ] }]
+  replies.turns = [{ id: 'reply-turn', status: 'completed', items: [
+    { id: 'reply-normal', type: 'userMessage', content: [{ type: 'text', text: '普通用户消息仍然保留。' }] },
+    { id: 'reply-structured', type: 'userMessage', content: [{ type: 'text', text: questionReplyText }] },
+    { id: 'reply-invalid', type: 'userMessage', content: [{ type: 'text', text: malformedReply }] },
+    { id: 'reply-json', type: 'userMessage', content: [{ type: 'text', text: JSON.stringify(questionReplies) }] },
+    { id: 'reply-assistant', type: 'agentMessage', text: '引用原问题，下面显示你的回答。' },
+  ] }]
   host.add('fairy-essay', '/computer/essay', 'Essay notes')
   host.pinnedIds.push(idle.id)
   busy.status = { type: 'active' }
@@ -74,6 +93,7 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
     window.__fairyAudioCalls = 0
     window.Audio = function () { window.__fairyAudioCalls++; throw new Error('Fairy must not create Audio') }
   })
+  await page.addInitScript('Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.__fairyCopiedText = text } } })')
   await page.goto(url)
   await page.getByRole('button', { name: 'Settings', exact: true }).waitFor()
   const baseline = await page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--dsw-alias-brand-primary').trim())
@@ -258,7 +278,11 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   })
   await assertHddAlignment()
   await composer.fill('')
-  await page.getByRole('button', { name: 'Send message', exact: true, disabled: true }).waitFor()
+  await page.getByRole('button', { name: 'Send message', exact: true, disabled: true }).waitFor().catch(async error => {
+    console.log(JSON.stringify({ heroAfterClear: await composer.evaluate(element => ({ text: element.textContent, html: element.innerHTML })),
+      buttons: await hero.locator('[data-toolbar-fixed="end"] button').evaluateAll(buttons => buttons.map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled }))), errors }))
+    throw error
+  })
   assert.equal(await send.isDisabled(), true)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.waitForFunction(() => {
@@ -462,9 +486,50 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   assert.equal(await pinnedSection.evaluate(element => getComputedStyle(element).borderTopWidth), '2px')
   await page.screenshot({ path: join(evidence, 'sidebar-fairy-phone.png') })
   await page.keyboard.press('Escape')
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('[data-row-key="session:fairy-replies"]').first().click()
+  const quotedReply = page.locator('[data-fz3-question-reply]')
+  await quotedReply.waitFor().catch(async error => {
+    console.log(JSON.stringify({ quoteFailure: { version: entry.version,
+      styles: await page.locator('style[data-plugin="dsh-fairy-zzz"]').evaluate(tag => tag.textContent.includes('.fz3-reply-bubble')),
+      flow: await page.locator('[data-chat-flow-kind]').evaluateAll(nodes => nodes.map(node => ({ kind: node.dataset.chatFlowKind, text: node.textContent.slice(0, 180) }))), errors } }))
+    throw error
+  })
+  assert.equal(await quotedReply.count(), 1)
+  assert.equal(await quotedReply.locator('.fz3-reply-pair').count(), 2)
+  assert.equal(await quotedReply.locator('.fz3-reply-answer').first().innerText(), questionReplies[0].answer)
+  assert.equal(await quotedReply.locator('.fz3-reply-question').first().innerText(), questionReplies[0].question)
+  assert.doesNotMatch(await quotedReply.innerText(), /send_user_message_question_reply|questionItemId|async-fixture/)
+  assert.equal(await quotedReply.locator('img').count(), 0)
+  assert.equal(await page.evaluate(() => window.__quoteInjected), undefined)
+  await quotedReply.getByRole('button', { name: '复制问答', exact: true }).click()
+  assert.equal(await page.evaluate(() => window.__fairyCopiedText), questionReplies.map(reply => reply.question + '\n' + reply.answer).join('\n\n'))
+  const longQuote = quotedReply.locator('details').last()
+  assert.equal(await longQuote.getAttribute('open'), null)
+  await longQuote.locator('summary').click()
+  assert.notEqual(await longQuote.getAttribute('open'), null)
+  await longQuote.locator('summary').click()
+  await page.getByText('普通用户消息仍然保留。', { exact: true }).waitFor()
+  await page.getByText(malformedReply, { exact: true }).waitFor()
+  await page.getByText(JSON.stringify(questionReplies), { exact: true }).waitFor()
+  assert.equal(replies.turns[0].items[1].content[0].text, questionReplyText)
+  await page.locator('[data-row-key="session:fairy-reply-preview"]').first().click()
+  await quotedReply.locator('.fz3-reply-answer').getByText(questionReplies[0].answer, { exact: true }).waitFor()
+  await quotedReply.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: join(evidence, 'question-reply-desktop.png') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+  assert.equal(await quotedReply.locator('.fz3-reply-question,.fz3-reply-answer').evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth + 2)), true)
+  await quotedReply.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: join(evidence, 'question-reply-phone.png') })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.locator('[data-row-key="session:fairy-replies"]').first().click()
+  await quotedReply.waitFor()
   assert.equal(await page.evaluate(() => window.__fairyAudioCalls), 0)
   assert.deepEqual(forbidden, [])
   await rpc('setEnabled', { id: entry.id, enabled: false })
+  assert.equal(await page.locator('[data-fz3-question-reply]').count(), 0)
+  await page.getByText(questionReplyText, { exact: true }).waitFor()
   await page.locator('.fz3-layer').waitFor({ state: 'hidden' })
   assert.equal(await page.locator('style[data-plugin="dsh-fairy-zzz"]').count(), 0)
   assert.equal(await page.locator('.fz3-brandname').count(), 0)
