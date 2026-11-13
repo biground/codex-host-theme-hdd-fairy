@@ -277,7 +277,8 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
     return Math.abs(parseFloat(getComputedStyle(body, '::after').top) + body.getBoundingClientRect().top - (card.top - card.width * .115)) < 2
   })
   await assertHddAlignment()
-  await composer.fill('')
+  await composer.press('ControlOrMeta+A')
+  await composer.press('Backspace')
   await page.getByRole('button', { name: 'Send message', exact: true, disabled: true }).waitFor().catch(async error => {
     console.log(JSON.stringify({ heroAfterClear: await composer.evaluate(element => ({ text: element.textContent, html: element.innerHTML })),
       buttons: await hero.locator('[data-toolbar-fixed="end"] button').evaluateAll(buttons => buttons.map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled }))), errors }))
@@ -390,7 +391,8 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   const activeSend = active.locator('[data-toolbar-fixed="end"] button:has(svg > path)')
   await activeSend.waitFor()
   assert.equal(await activeSend.evaluate(button => getComputedStyle(button).borderTopColor), 'rgb(230, 211, 60)')
-  await activeEditor.fill('')
+  await activeEditor.press('ControlOrMeta+A')
+  await activeEditor.press('Backspace')
   await stop.waitFor().catch(async error => {
     console.log(JSON.stringify({ composerAfterClear: await activeEditor.evaluate(element => ({ text: element.textContent, html: element.innerHTML })),
       toolbar: await active.locator('[data-toolbar-fixed="end"] button').evaluateAll(buttons => buttons.map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled }))),
