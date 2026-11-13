@@ -1,0 +1,4 @@
+# CodexHost Web: skin only; no DSH Agent preset.
+- insert:
+    - id: fairy-zzz-skin
+      name: 'dsh-fairy-zzz'

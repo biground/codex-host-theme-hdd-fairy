@@ -1,0 +1,70 @@
+{
+  "name": "dsh-fairy-zzz",
+  "version": "1.0.3-codexhost.11",
+  "description": "CodexHost Web 的 H.D.D 主题与 Fairy 动画：碳纤维暗色界面、聊天气泡、静音开机动画和会话状态眼徽。",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/biground/codex-host-theme-hdd-fairy.git"
+  },
+  "homepage": "https://github.com/biground/codex-host-theme-hdd-fairy#readme",
+  "bugs": {
+    "url": "https://github.com/biground/codex-host-theme-hdd-fairy/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "codex-host",
+    "codexhost",
+    "theme",
+    "skin",
+    "hdd",
+    "fairy",
+    "zenless-zone-zero"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./icon": "./assets/icon-180.png",
+    "./locale/*": "./locale/*",
+    "./package.json": "./package.json"
+  },
+  "icon": "assets/icon-180.png",
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "assets/boot.mp4",
+    "assets/poster.jpg",
+    "assets/hero.png",
+    "assets/icon-180.png",
+    "assets/hdd-logo.png",
+    "assets/hdd-mesh.png",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "NOTICE-fairy-dsh.md",
+    "licenses",
+    "locale",
+    "CREDITS.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-theme",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test test/host.test.mjs"
+  }
+}
