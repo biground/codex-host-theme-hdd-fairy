@@ -1,6 +1,6 @@
 {
   "name": "dsh-fairy-zzz",
-  "version": "1.0.3-codexhost.12",
+  "version": "1.0.3-codexhost.31",
   "description": "CodexHost Web 的 H.D.D 主题与 Fairy 动画：碳纤维暗色界面、聊天气泡、静音开机动画和会话状态眼徽。",
   "type": "module",
   "license": "MIT",
@@ -40,6 +40,7 @@
     "assets/poster.jpg",
     "assets/hero.png",
     "assets/icon-180.png",
+    "assets/agent-avatar.png",
     "assets/hdd-logo.png",
     "assets/hdd-mesh.png",
     "icon.svg",
@@ -48,7 +49,8 @@
     "NOTICE-fairy-dsh.md",
     "licenses",
     "locale",
-    "CREDITS.md"
+    "CREDITS.md",
+    "assets/running-mark-source.png"
   ],
   "dsh": {
     "bundle": {

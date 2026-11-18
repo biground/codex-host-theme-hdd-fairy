@@ -8,8 +8,8 @@ export const inject = ['webServer']
 const PREFIX = '/fairy-zzz/assets'
 const ASSETS = new Map([
   ['boot.mp4', 'video/mp4'], ['poster.jpg', 'image/jpeg'],
-  ['hero.png', 'image/png'], ['icon-180.png', 'image/png'],
-  ['hdd-logo.png', 'image/png'], ['hdd-mesh.png', 'image/png'],
+  ['hero.png', 'image/png'], ['icon-180.png', 'image/png'], ['agent-avatar.png', 'image/png'],
+  ['hdd-logo.png', 'image/png'], ['hdd-mesh.png', 'image/png'], ['running-mark-source.png', 'image/png'],
 ])
 
 export function apply(ctx) {

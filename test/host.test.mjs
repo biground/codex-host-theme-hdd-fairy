@@ -29,7 +29,7 @@ test('the visual plugin exposes only static assets and releases its route', asyn
   assert.equal(image.headers.get('content-type'), 'image/jpeg')
   assert.ok(Number(image.headers.get('content-length')) > 0)
   assert.equal((await image.arrayBuffer()).byteLength, 0)
-  for (const name of ['hdd-logo.png', 'hdd-mesh.png']) {
+  for (const name of ['hdd-logo.png', 'hdd-mesh.png', 'running-mark-source.png']) {
     const asset = await fetch(base + '/fairy-zzz/assets/' + name, { method: 'HEAD' })
     assert.equal(asset.status, 200, name)
     assert.equal(asset.headers.get('content-type'), 'image/png')
@@ -44,7 +44,7 @@ test('the visual plugin exposes only static assets and releases its route', asyn
   assert.equal((await suffix.arrayBuffer()).byteLength, 8)
   assert.equal((await fetch(base + '/fairy-zzz/assets/boot.mp4', { headers: { range: 'bytes=999999999999-' } })).status, 416)
   assert.equal((await fetch(base + '/fairy-zzz/assets/poster.jpg', { method: 'POST' })).status, 405)
-  for (const path of ['%ZZ', '%2e%2e%2findex.js', 'voice/greet.wav', 'missing.jpg']) {
+  for (const path of ['%ZZ', '%2e%2e%2findex.js', 'voice/greet.wav', 'missing.jpg', 'running-flame.png']) {
     assert.equal((await fetch(base + '/fairy-zzz/assets/' + path)).status, 404, path)
   }
   for (const path of ['tts', 'engine', 'usage', 'mood', 'voice-home', 'health']) {

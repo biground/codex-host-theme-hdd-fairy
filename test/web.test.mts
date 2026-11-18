@@ -128,6 +128,38 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   await page.locator('.fz3-layer[data-phase="greet"]').waitFor()
   await page.screenshot({ path: join(evidence, 'greeting.png') })
   await page.locator('.fz3-layer[data-phase="dock"]').waitFor({ timeout: 6000 })
+  // A fresh touch browser must never mount or download the desktop welcome effects.
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: 'en-US', colorScheme: 'dark' })
+  const phonePage = await phone.newPage()
+  await phonePage.addInitScript(() => {
+    localStorage.setItem('fairy.zzz.eye-hidden', 'false')
+    localStorage.setItem('fairy.zzz.dock-pos', '{"x":900,"y":400}')
+  })
+  const phoneMedia = []
+  phonePage.on('pageerror', error => errors.push(error.message))
+  phonePage.on('request', request => { if (/\/fairy-zzz\/assets\/(boot\.mp4|poster\.jpg|hero\.png)/.test(request.url())) phoneMedia.push(new URL(request.url()).pathname) })
+  await phonePage.goto(url)
+  await phonePage.locator('style[data-plugin="dsh-fairy-zzz"]').waitFor({ state: 'attached' })
+  await phonePage.locator('[data-composer-card]').waitFor()
+  await phonePage.getByRole('button', { name: 'Fast', exact: true }).waitFor()
+  await phonePage.screenshot({ path: join(evidence, 'mobile-first-open.png') })
+  assert.equal(await phonePage.locator('.fz3-layer,.fz3-core,.fz3-boot,.fz3-atmos').count(), 0, 'Phone must not mount the desktop Fairy overlay')
+  assert.deepEqual(phoneMedia, [], 'Phone must not download desktop boot media')
+  await phonePage.getByRole('button', { name: 'Open sidebar', exact: true }).last().click()
+  await phonePage.getByRole('button', { name: 'Settings', exact: true }).click()
+  await phonePage.getByText('Fairy', { exact: true }).last().click()
+  assert.equal(await phonePage.getByRole('switch', { name: '显示眼徽', exact: true }).isDisabled(), true)
+  assert.equal(await phonePage.getByRole('button', { name: '重播开机动画', exact: true }).isDisabled(), true)
+  assert.equal(await phonePage.evaluate(() => localStorage.getItem('fairy.zzz.eye-hidden')), 'false')
+  assert.equal(await phonePage.evaluate(() => localStorage.getItem('fairy.zzz.dock-pos')), '{"x":900,"y":400}')
+  await phonePage.keyboard.press('Escape')
+  await phonePage.setViewportSize({ width: 844, height: 390 })
+  await phonePage.reload()
+  await phonePage.locator('style[data-plugin="dsh-fairy-zzz"]').waitFor({ state: 'attached' })
+  await phonePage.locator('[data-composer-card]').waitFor()
+  assert.equal(await phonePage.locator('.fz3-layer,.fz3-core,.fz3-boot,.fz3-atmos').count(), 0, 'Landscape phones must also skip Fairy effects')
+  assert.deepEqual(phoneMedia, [])
+  await phone.close()
   assert.equal(await page.locator('.fz3-brandname').count(), 1)
   assert.equal(await page.locator('[data-codexhost-mark="otter"]').count(), 0)
   assert.equal(await page.locator('.fz3-core').count(), 1)
@@ -191,6 +223,13 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   await page.locator('[aria-label="Fast"][aria-pressed="true"]').waitFor()
   await fast.screenshot({ path: join(evidence, 'hdd-fast-on.png') })
   const assertFastPosition = async () => {
+    if (page.viewportSize().width < 768) {
+      const card = await page.locator('[data-composer-card]').boundingBox()
+      const box = await fast.boundingBox()
+      assert.ok(box && card && box.x >= card.x && box.y >= card.y && box.x + box.width <= card.x + card.width && box.y + box.height <= card.y + card.height, JSON.stringify({ box, card }))
+      assert.ok(box.height >= 44, 'Fast mode needs a full touch target')
+      return
+    }
     await page.waitForFunction(() => {
       const body = document.querySelector('[data-conversation-content]').getBoundingClientRect()
       const button = document.querySelector('button[aria-label="Fast"]').getBoundingClientRect()
@@ -329,7 +368,7 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   const selectedSession = page.locator('[data-row-key="session:fairy-busy"][aria-selected="true"]').first()
   await selectedSession.waitFor()
   assert.match(await selectedSession.evaluate(element => getComputedStyle(element).backgroundImage), /linear-gradient/)
-  assert.match(await selectedSession.evaluate(element => getComputedStyle(element, '::after').backgroundImage), /data:image\/svg\+xml/)
+  assert.equal(await selectedSession.evaluate(element => getComputedStyle(element, '::after').content), 'none')
   assert.equal(await selectedSession.locator('[data-session-title]').evaluate(element => getComputedStyle(element).color), 'rgb(25, 23, 12)')
   await selectedSession.hover()
   await selectedSession.getByRole('button', { name: 'Pin session', exact: true }).click()
@@ -402,10 +441,53 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   })
   await page.setViewportSize({ width: 390, height: 844 })
   await assertFastPosition()
-  const readingViewport = await active.locator(':scope > [data-conversation-scroll]').boundingBox()
-  const fastBox = await fast.boundingBox()
-  assert.ok(readingViewport && fastBox && readingViewport.y >= fastBox.y + fastBox.height, JSON.stringify({ readingViewport, fastBox }))
+  assert.equal(await page.locator('.fz3-core,.fz3-boot').count(), 0)
+  assert.equal(await active.evaluate(element => getComputedStyle(element).paddingTop), '0px')
   await page.screenshot({ path: join(evidence, 'conversation-carbon-phone.png') })
+  assert.ok((await assistantBody.boundingBox()).width >= 330, JSON.stringify(await assistantBody.evaluate(element => {
+    const chain = []
+    for (let node = element; node && chain.length < 8; node = node.parentElement) {
+      const style = getComputedStyle(node), box = node.getBoundingClientRect()
+      chain.push({ class: node.className, x: box.x, width: box.width, padding: style.padding })
+    }
+    return chain
+  })))
+  for (const width of [320, 360, 390]) {
+    await page.setViewportSize({ width, height: 844 })
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    const beforeFast = await fast.getAttribute('aria-pressed')
+    await fast.click()
+    await page.waitForFunction(value => document.querySelector('button[aria-label="Fast"]')?.getAttribute('aria-pressed') !== value, beforeFast)
+    await fast.click()
+    await page.waitForFunction(value => document.querySelector('button[aria-label="Fast"]')?.getAttribute('aria-pressed') === value, beforeFast)
+    const mobilePermission = active.getByRole('button', { name: 'Access mode, current: Ask', exact: true })
+    await mobilePermission.click()
+    await page.getByRole('menuitem', { name: 'Native Auto', exact: true }).waitFor()
+    await page.keyboard.press('Escape')
+    const mobileModel = active.getByRole('button', { name: 'Select model, current Native Model', exact: true })
+    await mobileModel.scrollIntoViewIfNeeded()
+    assert.ok((await mobileModel.boundingBox()).height >= 44)
+    await mobileModel.click()
+    await page.getByRole('menuitem', { name: 'Native Model', exact: true }).waitFor()
+    await page.keyboard.press('Escape')
+    const fixedButtons = active.locator('[data-toolbar-fixed] button')
+    await page.screenshot({ path: join(evidence, `mobile-conversation-${width}.png`) })
+    const fixedTargets = await fixedButtons.evaluateAll(buttons => buttons.map(button => {
+      const rect = button.getBoundingClientRect()
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)
+      const chain = []
+      for (let node = button.parentElement; node && chain.length < 24; node = node.parentElement) {
+        const box = node.getBoundingClientRect(), style = getComputedStyle(node)
+        chain.push({ class: node.className, x: box.x, width: box.width, position: style.position,
+          overflowX: style.overflowX, scrollLeft: node.scrollLeft, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth,
+          phone: node.getAttribute('data-phone-toolbar') })
+      }
+      return { label: button.getAttribute('aria-label'), width: rect.width, height: rect.height,
+        x: rect.x, y: rect.y, hit: hit?.outerHTML.slice(0, 300), clickable: button.contains(hit), chain }
+    }))
+    assert.equal(fixedTargets.every(button => button.width >= 44 && button.height >= 44 && button.clickable), true,
+      'Attach and Stop must stay visible and clickable: ' + JSON.stringify({ width, fixedTargets }))
+  }
   assert.ok(await assistantBody.evaluate(element => element.scrollWidth <= element.clientWidth + 2))
   const wideTable = assistantBody.locator('.md-table-wide')
   await wideTable.hover()
@@ -473,10 +555,7 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
   await page.getByRole('button', { name: '跟随', exact: true }).click()
   await page.keyboard.press('Escape')
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.waitForFunction(() => {
-    const rect = document.querySelector('.fz3-core').getBoundingClientRect()
-    return rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight
-  })
+  await page.locator('.fz3-core').waitFor({ state: 'detached' })
   await page.screenshot({ path: join(evidence, 'phone.png') })
   await page.getByRole('button', { name: 'Open sidebar', exact: true }).last().click()
   await pinnedSection.waitFor()
@@ -485,7 +564,7 @@ test('Fairy works without audio in CodexHost beta.5 and cleans up on disable', {
     return drawer && drawer.getBoundingClientRect().left >= 0 && drawer.getAnimations({ subtree: true }).every(animation => animation.effect?.getTiming().iterations === Infinity || animation.playState !== 'running')
   })
   assert.ok((await pinnedSection.boundingBox()).x >= 0)
-  assert.equal(await pinnedSection.evaluate(element => getComputedStyle(element).borderTopWidth), '2px')
+  assert.equal(await pinnedSection.evaluate(element => getComputedStyle(element).borderTopWidth), '1px')
   await page.screenshot({ path: join(evidence, 'sidebar-fairy-phone.png') })
   await page.keyboard.press('Escape')
   await page.setViewportSize({ width: 1440, height: 1000 })

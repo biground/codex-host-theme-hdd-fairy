@@ -7,11 +7,19 @@ window.__ModuleLoader__.load({
     const { createPortal } = require('react-dom')
     const { writeClipboard, IconCopyOutlineRegular, IconCheckOutlineRegular } = require('@deepseek-ai/dsh-client-ui-primitives')
     const h = React.createElement
-    const { useCallback, useEffect, useLayoutEffect, useRef, useState } = React
+    const { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } = React
     const PKG = 'dsh-fairy-zzz'
     const DRAG_KEY = 'fairy.zzz.drag'
     const POS_KEY = 'fairy.zzz.dock-pos'
     const EYE_KEY = 'fairy.zzz.eye-hidden'
+    const MOBILE_MEDIA = '(max-width: 767px), (max-width: 1023px) and (hover: none) and (pointer: coarse)'
+    const mobileMedia = window.matchMedia(MOBILE_MEDIA)
+    const subscribeMobile = listener => {
+      mobileMedia.addEventListener('change', listener)
+      return () => mobileMedia.removeEventListener('change', listener)
+    }
+    const isMobile = () => mobileMedia.matches
+    const useMobile = () => useSyncExternalStore(subscribeMobile, isMobile)
     let themeService = null
     const readStored = (key, fallback) => {
       try { const raw = localStorage.getItem(key); return raw === null ? fallback : JSON.parse(raw) }
@@ -712,20 +720,19 @@ html[data-fz3-theme="dark"] [data-row-key^="workspace:"][aria-expanded="true"] >
   color:#8582df;background:#635cc22e;box-shadow:0 0 9px #6862ce55,inset 0 0 8px #6862ce22;
 }
 html[data-fz3-theme="dark"] [data-row-key][role="treeitem"][aria-selected="true"]{
-  --dsh-row-surface:#f7d838;--dsw-alias-label-primary:#19170c;--dsw-alias-label-secondary:#50430d;--dsw-alias-label-tertiary:#62501a;
-  z-index:1;padding-inline-end:28px;color:#19170c;border-radius:9px;background:linear-gradient(100deg,#ffb52e 0%,#f5dc32 55%,#d4eb42 100%);
+  --dsh-row-surface:#d4eb42;--dsw-alias-label-primary:#19170c;--dsw-alias-label-secondary:#50430d;--dsw-alias-label-tertiary:#62501a;
+  z-index:1;color:#19170c;border-radius:9px;background:linear-gradient(100deg,#ffb52e 0%,#f5dc32 55%,#d4eb42 100%);
   box-shadow:inset 0 0 0 1px #fff3a933,0 0 7px #e8d63622;
 }
 html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [data-session-title]{color:#19170c;font-weight:700}
 html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [data-harness-id]{filter:brightness(0)}
-html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [class*="_rowActions"]{inset-inline-end:28px;color:#19170c;background:transparent}
-/* Keep the native drop-after pseudo-element free while dragging. */
-html[data-fz3-theme="dark"] [data-row-key][role="treeitem"][aria-selected="true"]:not([class*="_dropAfter"])::after{
-  content:"";position:absolute;right:5px;top:-7px;width:19px;height:27px;z-index:2;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 30'%3E%3Cpath d='M12 1a9 9 0 0 0-9 9c0 7 9 18 9 18s9-11 9-18a9 9 0 0 0-9-9Z' fill='%23f54d45' stroke='%23b12c29' stroke-width='1'/%3E%3Ccircle cx='12' cy='10' r='4' fill='none' stroke='%23602321' stroke-width='2'/%3E%3Ccircle cx='12' cy='10' r='1.5' fill='%23602321'/%3E%3C/svg%3E") center/contain no-repeat;
-  filter:drop-shadow(0 2px 2px #0008);
+html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [class*="_rowActions"]{color:#000}
+html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [class*="_rowActions"] button{color:#000;font-weight:700}
+html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"] [class*="_rowActions"] svg{stroke:currentColor;stroke-width:1.6px;stroke-linejoin:round}
+html[data-fz3-theme="dark"] [data-session-status="done"] [data-state="done"]::after{
+  inset:-3px;border-radius:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 4h20c2.7 0 4.4 2.9 3.1 5.2L19.1 26.5c-1.4 2.4-4.8 2.4-6.2 0L2.9 9.2C1.6 6.9 3.3 4 6 4Z' fill='%23ff3025' stroke='%23080808' stroke-width='2.4' stroke-linejoin='round'/%3E%3Crect x='10' y='8' width='12' height='7' rx='3' fill='%23080808'/%3E%3Ccircle cx='16' cy='21.5' r='2.5' fill='%23080808'/%3E%3C/svg%3E") center/contain no-repeat;
 }
-html[data-fz3-theme="dark"] [data-row-key][aria-selected="true"]:not([class*="_dropAfter"]):has([class*="_rowActions"]:hover)::after{opacity:.3}
 
 /* Static, low-contrast diagonal fibers; keep the sidebar and reading surfaces neutral. */
 html[data-fz3-theme="dark"],html[data-fz3-theme="dark"] body{background:#0b0b0e!important}
@@ -748,20 +755,20 @@ html[data-fz3-theme="dark"] [data-content-phase="active"] [class*="_viewArea"]:h
   width:min(calc(var(--dsh-chat-content-width,748px) + 16px),calc(100% - 2 * var(--dsh-composer-side-clearance,16px)));
   margin:8px auto 12px;border:1px solid #26292f;border-radius:22px;background:#0c0e12;
 }
-html[data-fz3-theme="dark"] [data-conversation-content] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_bubble"]{
+html[data-fz3-theme="dark"] [data-conversation-content] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_userStack"] > [class*="_bubble"]{
   --dsw-alias-label-primary:#fff;--dsw-alias-link:#fff;position:relative;background:#3853db;color:#fff;border-radius:18px;
 }
-html[data-fz3-theme="dark"] [data-conversation-content] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_bubble"]::after{
+html[data-fz3-theme="dark"] [data-conversation-content] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_userStack"] > [class*="_bubble"]::after{
   content:"";position:absolute;right:-5px;top:16px;width:12px;height:12px;border-radius:2px;background:#3853db;transform:rotate(45deg);pointer-events:none;
 }
-html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) > [data-slot="conversation.chat.node"] > [class*="_root"]{
+html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"]{
   position:relative;min-width:0;padding-inline-start:44px;
 }
-html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) > [data-slot="conversation.chat.node"] > [class*="_root"]::before{
-  content:"";position:absolute;left:0;top:0;width:34px;height:34px;border-radius:11px;
-  background:url('/fairy-zzz/assets/icon-180.png') center/cover;box-shadow:0 0 0 1px #4156b744;pointer-events:none;
+html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"]::before{
+  content:"";position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;
+  background:url('/fairy-zzz/assets/agent-avatar.png') center/contain no-repeat;pointer-events:none;
 }
-html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) > [data-slot="conversation.chat.node"] > [class*="_root"] > [class*="_body"]{
+html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"] > [class*="_body"]{
   --dsw-alias-label-primary:#24262b;--dsw-alias-label-primary-dimmed:#353b44;--dsw-alias-label-primary-bluish:#173d82;
   --dsw-alias-label-secondary:#545a63;--dsw-alias-label-tertiary:#707780;--dsw-alias-label-quaternary:#777e86;
   --dsw-alias-bg-base:#f4f4f2;--dsw-alias-bg-layer-1:#fff;--dsw-alias-bg-layer-2:#ededeb;--dsw-alias-bg-layer-3:#e2e4e1;
@@ -776,12 +783,55 @@ html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-gr
   position:relative;box-sizing:border-box;min-width:0;padding:14px 16px;border-radius:14px;
   background:#f4f4f2;color:#24262b;color-scheme:light;box-shadow:0 1px 2px #0002;
 }
-html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) > [data-slot="conversation.chat.node"] > [class*="_root"] > [class*="_body"]::before{
+html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"] > [class*="_body"]::before{
   content:"";position:absolute;left:-5px;top:16px;width:12px;height:12px;border-radius:2px;background:#f4f4f2;transform:rotate(45deg);pointer-events:none;
 }
 html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"] .md-table-wide{
   --dsh-table-spare:0px;--dsh-table-lead:0px;box-sizing:border-box;width:100%;max-width:100%;margin-left:0;padding-left:0;
 }
+
+/* Native question controls keep their behavior inside the blue reply frame. */
+html[data-fz3-theme="dark"] [data-question-key]{padding:6px var(--dsh-composer-side-clearance,16px) 10px}
+html[data-fz3-theme="dark"] [data-question-key] > section{
+  --dsw-alias-label-primary:#fff;--dsw-alias-label-secondary:#edf1ff;--dsw-alias-label-tertiary:#dce5ff;
+  display:flex;gap:8px;padding:8px;border:0;border-radius:22px;background:#2455e7;color:#fff;box-shadow:0 3px 14px #0004;
+}
+html[data-fz3-theme="dark"] [data-question-key] header{
+  min-height:44px;padding:12px 16px;border-radius:18px;background:#000;color:#fff;gap:12px;
+}
+html[data-fz3-theme="dark"] [data-question-key] h2{color:#fff;font-size:16px;line-height:1.5;font-weight:700}
+html[data-fz3-theme="dark"] [data-question-key] header h2{display:flex;align-items:flex-start;gap:8px}
+html[data-fz3-theme="dark"] [data-question-key] header h2::before{
+  content:"";flex:0 0 22px;width:22px;height:22px;margin-top:1px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.5 2 2 5.8 2 10.5c0 2.5 1.3 4.8 3.4 6.3L4 22l5.5-3.2c.8.2 1.6.3 2.5.3 5.5 0 10-3.8 10-8.6S17.5 2 12 2Z' fill='%23fff'/%3E%3Ccircle cx='7.5' cy='10.5' r='1.2' fill='%23000'/%3E%3Ccircle cx='12' cy='10.5' r='1.2' fill='%23000'/%3E%3Ccircle cx='16.5' cy='10.5' r='1.2' fill='%23000'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html[data-fz3-theme="dark"] [data-question-key] [data-question-scroll] > [class*="_detail"]{
+  margin:0 0 8px;padding:12px 16px;border-radius:16px;background:#000;color:#fff;
+}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_options"]{gap:8px;margin:0;padding:0}
+html[data-fz3-theme="dark"] [data-question-key] :is(button[role="radio"],button[role="checkbox"],[class*="_customRow"],[class*="_customBlock"]){
+  --dsw-alias-label-primary:#111;--dsw-alias-label-primary-foreground:#fff;--dsw-alias-label-secondary:#444;--dsw-alias-label-tertiary:#555;
+  --dsw-alias-border-l4:#999;--dsw-alias-label-caption:#666;
+  min-height:44px;margin:0;padding:8px 12px;border:2px solid transparent;border-radius:24px;background:#fff;color:#111;color-scheme:light;
+}
+html[data-fz3-theme="dark"] [data-question-key] :is(button[role="radio"],button[role="checkbox"]):is(:hover,:focus-visible,[aria-checked="true"]),
+html[data-fz3-theme="dark"] [data-question-key] :is([class*="_customRow"],[class*="_customBlock"]):focus-within,
+html[data-fz3-theme="dark"] [data-question-key] [class*="_customRowActive"]{border-color:#111}
+html[data-fz3-theme="dark"] [data-question-key] button[role]:focus-visible{outline:2px solid #111;outline-offset:-5px}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_optionLine"]{justify-content:center;text-align:center}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_optionLabel"]{font-size:16px;font-weight:650}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_description"]{color:#444}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_badge"]{background:#e9edff;color:#111}
+html[data-fz3-theme="dark"] [data-question-key] [class*="_number"]{border-radius:50%;background:#eee;color:#444;font-weight:700}
+html[data-fz3-theme="dark"] [data-question-key] [aria-checked="true"] [class*="_number"]{background:#111;color:#fff}
+html[data-fz3-theme="dark"] [data-question-key] :is(textarea,[class*="_fieldMirror"]){font-size:16px;color:#111;caret-color:#111}
+html[data-fz3-theme="dark"] [data-question-key] textarea{outline:none;box-shadow:none!important}
+html[data-fz3-theme="dark"] [data-question-key] textarea::placeholder{color:#666;opacity:1}
+html[data-fz3-theme="dark"] [data-question-key] footer{gap:8px;margin:0;padding:0 4px 2px;border:0;background:transparent}
+html[data-fz3-theme="dark"] [data-question-key] footer button:not([class*="_iconButton"]){
+  min-height:36px;padding-inline:14px;border:1px solid #fff;border-radius:999px;background:#fff;color:#111;font-weight:650;
+}
+html[data-fz3-theme="dark"] [data-question-key] button:disabled{opacity:.5}
 
 .fz3-reply-row{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}
 .fz3-reply-bubble{
@@ -974,6 +1024,115 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
   .fz3-copy-title::after{display:none}
   .fz3-copy-title-zh{display:none}
 }
+/* Keep the native phone toolbar and scrolling; spend the width on the reply. */
+@media ${MOBILE_MEDIA}{
+  html[data-fz3-theme] [data-phase]:has(> [data-conversation-content]){overflow:clip}
+  html[data-fz3-theme] [data-conversation-content]{--dsh-composer-side-clearance:12px}
+  html[data-fz3-theme="dark"] [data-conversation-content][data-content-phase="active"]{background-color:#0e1014;background-image:none}
+  html[data-fz3-theme="dark"] [data-content-phase="active"]:has(button[aria-label="Fast"]){padding-top:0}
+  html[data-fz3-theme="dark"] [data-content-phase="active"] [class*="_viewArea"]:has([data-chat-flow]){
+    width:100%;margin:0;border:0;border-radius:0;background:transparent;
+  }
+  html[data-fz3-theme] [data-conversation-content] [class*="_scroll"]:has(> [data-chat-flow]){padding:12px}
+  html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"]{padding-inline-start:0}
+  html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"]::before{content:none}
+  html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"] > [class*="_body"]{
+    padding:14px;border-radius:16px;font-size:max(15px,var(--dsh-content-font-size,14px));line-height:1.7;
+  }
+  html[data-fz3-theme="dark"] [data-chat-flow-kind^="assistant"]:not([data-chat-group-part="reasoning"]) :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"] > [class*="_body"]::before{content:none}
+  html[data-fz3-theme="dark"] [data-conversation-content] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_userStack"] > [class*="_bubble"],
+  .fz3-reply-bubble{max-width:92%;font-size:max(15px,var(--dsh-content-font-size,14px));line-height:1.65}
+  html[data-fz3-theme] [data-composer-card]{font-size:max(16px,var(--dsh-content-font-size,14px));gap:8px}
+  html[data-fz3-theme="dark"] [data-conversation-content] [data-composer-card]{border-width:1px;border-radius:20px}
+  html[data-fz3-theme] [data-composer-seat]{padding-bottom:env(safe-area-inset-bottom,0px)}
+  html[data-fz3-theme] [data-composer-card] [role="textbox"]{min-height:48px}
+  html[data-fz3-theme] [data-composer-tools] button{min-height:44px;min-width:44px;touch-action:manipulation}
+  html[data-fz3-theme] [data-slot="conversation.input.model"] button{min-height:44px;min-width:44px;touch-action:manipulation}
+  html[data-fz3-theme] [data-chat-flow-kind] button[class*="_action"]{min-height:44px;min-width:44px}
+  html[data-fz3-theme="dark"] [data-conversation-content] [data-toolbar-fixed="start"] button,
+  html[data-fz3-theme="dark"] [data-conversation-content] [data-toolbar-fixed="end"] button:is(:has(svg > path),:has(svg > rect)){
+    width:44px;height:44px;flex:none;transform:none;
+  }
+  html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"]{
+    position:static;inset:auto;z-index:auto;flex:none;width:44px;height:44px;padding:0;gap:0;border-radius:12px;letter-spacing:0;
+  }
+  html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"]::before,
+  html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"]::after{display:none}
+  html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"] svg{width:18px;height:18px}
+  html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"][aria-pressed="true"]{background:#e6d33c22}
+  html[data-fz3-theme="dark"] [data-sidebar-group],html[data-fz3-theme="dark"] [data-sidebar-pinned]{border-width:1px;margin-block:6px;padding:4px}
+  html[data-fz3-theme] [data-row-key][role="treeitem"]{min-height:44px}
+  .fz3-reply-copy{width:44px;height:44px}
+}
+.fz3-set button:disabled{opacity:.45;cursor:default}
+
+/* UI typography and gold chrome adapted from AbiTssE6/dsh-theme-zzz 0.3.7
+   (7f3e264, MIT; see licenses/dsh-theme-zzz-MIT.txt). Fonts are local only. */
+html[data-fz3-theme]{
+  --fz3-ui-display:"方正综艺简体","FZZongYi-M05S","FZZYJW--GB1-0","Noto Sans SC","Source Han Sans SC","思源黑体",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --fz3-ui-text:var(--fz3-ui-display);
+  --fz3-chrome-selected:linear-gradient(135deg,#8c710100 0%,#8c71011a 40%,#8c71018c 100%),repeating-linear-gradient(100deg,#ffffff0e 0 9px,transparent 9px 19px),linear-gradient(135deg,#f4ca25 0%,#e8c01a 46%,#8c7101 100%);
+  --fz3-chrome-compass:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%23101010' stroke-width='1.6'/%3E%3Cpath d='m10.8 5.2-1.6 4-4 1.6 1.6-4Z' fill='%23101010'/%3E%3C/svg%3E");
+}
+html[data-fz3-theme] body,
+html[data-fz3-theme] :is(button,select,input,textarea,[role="tab"],[role="menuitem"],[data-slot="sidebar"],.fz3-brandname,.fz3-reply-label){font-family:var(--fz3-ui-display)!important}
+html[data-fz3-theme] :is(button,select,[role="tab"],[role="menuitem"],[data-session-title],[class*="_navLabel"]){font-weight:800;font-synthesis-weight:none}
+html[data-fz3-theme] :is([role="dialog"],[role="menu"],[role="tooltip"],.fz3-set,.fz3-layer){font-family:var(--fz3-ui-text)!important}
+html[data-fz3-theme] :is([role="dialog"],[role="menu"],[role="tooltip"]) :is(p,li,label,input,textarea,[class*="_description"],[class*="_subtitle"]){font-family:var(--fz3-ui-text)!important}
+html[data-fz3-theme] :is([role="dialog"],[role="menu"],[data-question-key],[data-content-phase="hero"]) :is(h1,h2,h3,h4,[class*="_sectionTitle"],[class*="_navLabel"]),
+html[data-fz3-theme] :is(.fz3-hdd-chinese,.fz3-hdd-english,.fz3-hdd-greeting,.fz3-copy-title,.fz3-copy-title-zh){font-family:var(--fz3-ui-display)!important;font-synthesis-weight:none}
+/* Reading surfaces retain their previous font stacks, including user bubbles. */
+html[data-fz3-theme] [data-chat-flow-kind^="assistant"] :is([data-slot="conversation.chat.node"],[data-selection-answer]) > [class*="_root"] > [class*="_body"],
+html[data-fz3-theme] [data-composer-card] :is([role="textbox"],input,textarea){font-family:var(--dsw-font-family)!important;font-weight:400}
+html[data-fz3-theme] :is([data-chat-flow-kind="user"],[data-chat-flow-kind="steering"]) [class*="_userStack"] > [class*="_bubble"],
+html[data-fz3-theme] .fz3-reply-bubble{font-family:var(--fz3-font)!important;font-weight:400}
+/* The source theme keeps native glyph geometry: strengthen outlines, never fill them. */
+html[data-fz3-theme] [data-slot="sidebar"] :is([class*="_panelRow"],[class*="_newSession"],[class*="_footer"] button){font-family:var(--fz3-ui-display)!important;font-weight:800}
+html[data-fz3-theme="dark"] [data-slot="sidebar"] :is([class*="_panelRow"],[class*="_newSession"],[class*="_footer"] button){color:#f2f2f2}
+html[data-fz3-theme] :is([data-slot="sidebar"] [class*="_panelRow"],[data-slot="sidebar"] [class*="_newSession"],[data-slot="sidebar"] [class*="_footer"] button,[class*="_navCell"],[data-conversation-navigation-focus]) svg{stroke-linecap:round;stroke-linejoin:round}
+html[data-fz3-theme] [data-slot="sidebar"] :is([class*="_panelRow"],[class*="_newSession"],[class*="_footer"] button) > svg{width:18px;height:18px;flex-shrink:0}
+html[data-fz3-theme] :is([data-slot="sidebar"] [class*="_panelRow"],[data-slot="sidebar"] [class*="_newSession"],[data-slot="sidebar"] [class*="_footer"] button,[class*="_navCell"],[data-conversation-navigation-focus]) svg[fill="none"]{stroke-width:1.6px}
+/* Style the resident header and its real title/tabs; retain all native handlers. */
+html[data-fz3-theme="dark"] [data-conversation-navigation-focus]{background:#242424;border-bottom:1px solid #111;border-radius:0 0 10px 10px}
+html[data-fz3-theme] [data-conversation-navigation-focus] :is([class*="_crumb"],[class*="_title"]){font-family:var(--fz3-ui-display)!important;font-weight:800;font-synthesis-weight:none}
+html[data-fz3-theme="dark"] [data-conversation-navigation-focus] [class*="_crumbCurrent"],
+html[data-fz3-theme="dark"] [data-conversation-navigation-focus][class*="_headerBlank"] [data-conversation-header-leading]::after{
+  box-sizing:border-box;position:relative;min-width:100px;max-width:100%;padding:5px 12px 5px 32px;border-radius:8px;
+  color:#101010;background:var(--fz3-chrome-compass) 11px center/14px 14px no-repeat,var(--fz3-chrome-selected);
+  font-family:var(--fz3-ui-display);font-size:13px;font-weight:800;line-height:20px;font-synthesis-weight:none;
+}
+html[data-fz3-theme="dark"] [data-conversation-navigation-focus][class*="_headerBlank"] [data-conversation-header-leading]::after{content:"开始";display:block;white-space:nowrap}
+html[data-fz3-theme="dark"] [data-slot="conversation.header.shortcuts"] [data-active="true"]{background:var(--fz3-chrome-selected);border-color:transparent;color:#101010;border-radius:8px}
+html[data-fz3-theme="dark"] [data-slot="conversation.header.shortcuts"] [data-active="true"] :is(button,[class*="_title"]){color:#101010}
+html[data-fz3-theme="dark"] :is([data-conversation-tabs],[data-dockkit-strip]){background:#242424;border-radius:10px;gap:4px}
+html[data-fz3-theme="dark"] :is([data-conversation-tabs],[data-dockkit-strip]) [role="tab"]{border-radius:8px}
+html[data-fz3-theme="dark"] :is([data-conversation-tabs],[data-dockkit-strip]) [role="tab"][aria-selected="true"]{background:var(--fz3-chrome-selected);color:#101010;box-shadow:none}
+html[data-fz3-theme="dark"] [data-conversation-tabs] [role="tab"]::after{content:none}
+
+/* Reference marker: original source pixels clipped as a sprite; separate hollow rings. */
+html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"]){
+  --fz3-running-green:#4cdb26;position:relative;isolation:isolate;overflow:visible;
+  background:none;filter:drop-shadow(0 0 .7px #0b1b04);
+}
+html[data-fz3-theme] [data-session-status="ongoing"] svg[data-state="ongoing"]{
+  position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);z-index:1;
+  background:url('/fairy-zzz/assets/running-mark-source.png') -18px -18.6px/52.2px 46.2px no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20fill%3D%22white%22%20d%3D%22M9%200h3v1h-3ZM8%201h5v1h-5ZM15%201h1v1h-1ZM7%202h10v1h-10ZM4%203h14v1h-14ZM3%204h16v1h-16ZM2%205h17v1h-17ZM1%206h19v1h-19ZM0%207h20v1h-20ZM0%208h20v1h-20ZM0%209h20v1h-20ZM0%2010h20v1h-20ZM0%2011h20v1h-20ZM0%2012h20v1h-20ZM0%2013h19v1h-19ZM1%2014h18v1h-18ZM1%2015h18v1h-18ZM2%2016h16v1h-16ZM3%2017h14v1h-14ZM4%2018h11v1h-11ZM6%2019h8v1h-8Z%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat;
+}
+html[data-fz3-theme] [data-session-status="ongoing"] svg[data-state="ongoing"] :is(g,circle){animation:none;opacity:0}
+html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"])::before,
+html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"])::after{
+  content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%);box-sizing:border-box;
+  border:2px solid var(--fz3-running-green);border-radius:50%;corner-shape:round;pointer-events:none;
+  animation:fz3-reference-wave 1.8s linear infinite;
+}
+html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"])::after{animation-delay:-.9s}
+@keyframes fz3-reference-wave{0%{width:16px;height:16px;opacity:0}8%{opacity:1}90%{opacity:.95}100%{width:30px;height:30px;opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"])::before{animation:none;width:22px;height:22px;opacity:.95}
+  html[data-fz3-theme] [data-session-status="ongoing"]:has(svg[data-state="ongoing"])::after{animation:none;width:29px;height:29px;opacity:.8}
+}
+
 `
     function CoreGlyph({ phase, mood }) {
       const [blink, setBlink] = useState('0')
@@ -1211,6 +1370,8 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
 
 
     function Atmos() {
+      const mobile = useMobile()
+      if (mobile) return null
       return h(
         'div',
         { className: 'fz3-atmos', 'aria-hidden': 'true' },
@@ -1236,6 +1397,7 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
 
 
     function FairySettings() {
+      const mobile = useMobile()
       const [drag, setDrag] = useState(() => readBool(DRAG_KEY, true))
       const [hidden, setHidden] = useState(() => readBool(EYE_KEY, false))
       const [mode, setMode] = useState(() => themeService.getTheme().preference)
@@ -1251,22 +1413,23 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
         h('div', null, h('div', { className: 'fz3-set-label' }, label), h('div', { className: 'fz3-set-desc' }, description)), control)
       const switchButton = (label, on, click) => h('button', {
         type: 'button', role: 'switch', 'aria-label': label, 'aria-checked': on,
+        disabled: mobile,
         className: 'fz3-set-switch', 'data-on': on ? '1' : '0', onClick: click,
       })
       return h('div', { className: 'fz3-set' },
         h('div', { className: 'fz3-set-head' }, h(BrandMark), h('div', null,
           h('div', { className: 'fz3-set-name' }, 'Fairy · Ⅲ型'),
           h('div', { className: 'fz3-set-sub' }, 'H.D.D 空洞深潜系统'))),
-        row('显示眼徽', '眼徽显示当前会话的运行状态，点击可查看会话状态。', switchButton('显示眼徽', !hidden, () => toggle(EYE_KEY, hidden, setHidden))),
-        row('拖动眼徽', '按住眼标拖动；位置保存在当前浏览器。', switchButton('拖动眼徽', drag, () => toggle(DRAG_KEY, drag, setDrag))),
+        row('显示眼徽', mobile ? '手机端自动停用眼徽和开机动画，电脑端沿用已保存的设置。' : '眼徽显示当前会话的运行状态，点击可查看会话状态。', switchButton('显示眼徽', !mobile && !hidden, () => toggle(EYE_KEY, hidden, setHidden))),
+        row('拖动眼徽', '按住眼标拖动；位置保存在当前浏览器。', switchButton('拖动眼徽', !mobile && drag, () => toggle(DRAG_KEY, drag, setDrag))),
         row('外观', '使用 CodexHost 原生外观设置；跟随会采用系统配色。', h('div', { className: 'fz3-set-seg' },
           [['system', '跟随'], ['dark', '深色'], ['light', '浅色']].map(([value, label]) => h('button', {
             key: value, type: 'button', className: 'fz3-set-segbtn', 'data-on': mode === value ? '1' : '0',
             'aria-pressed': mode === value, onClick: () => themeService.setTheme(value),
           }, label)))),
         h('div', { className: 'fz3-set-actions' },
-          h('button', { type: 'button', className: 'fz3-set-btn', onClick: () => bootHooks.forEach(fn => fn()) }, '重播开机动画'),
-          h('button', { type: 'button', className: 'fz3-set-btn is-ghost', onClick: () => { writeStored(POS_KEY, null); notify() } }, '眼标复位')))
+          h('button', { type: 'button', className: 'fz3-set-btn', disabled: mobile, onClick: () => bootHooks.forEach(fn => fn()) }, '重播开机动画'),
+          h('button', { type: 'button', className: 'fz3-set-btn is-ghost', disabled: mobile, onClick: () => { writeStored(POS_KEY, null); notify() } }, '眼标复位')))
     }
 
     function BootStage({ onDone }) {
@@ -1305,6 +1468,11 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
             h('span', { className: 'fz3-boot-pct' }, Math.round(pct) + '%')))),
         h('button', { type: 'button', className: 'fz3-skip', onClick: finish,
           style: { position: 'absolute', right: 24, bottom: 24, zIndex: 4 } }, '跳过 / SKIP ▸'))
+    }
+
+    function FairyOverlay(props) {
+      const mobile = useMobile()
+      return mobile ? null : h(FairySkin, props)
     }
 
     function FairySkin(props) {
@@ -1448,7 +1616,7 @@ html[data-fz3-theme="dark"] [data-conversation-content] button[aria-label="Fast"
         mount('sidebar.brand.mark', { id: 'fairy-zzz-brandmark', priority: 0 }, BrandMark)
         mount('sidebar.brand.name', { id: 'fairy-zzz-brandname', priority: 0 }, BrandName)
         mount('conversation.hero.brand.mark', { id: 'fairy-zzz-hero', priority: 0 }, HeroMark)
-        mount('shell.overlay', { id: 'fairy-zzz-skin', order: 24 }, FairySkin)
+        mount('shell.overlay', { id: 'fairy-zzz-skin', order: 24 }, FairyOverlay)
         mount('shell.overlay', { id: 'fairy-zzz-atmos', order: 12 }, Atmos)
         mount('settings.section', { id: 'fairy-zzz-settings', order: 40, label: 'Fairy' }, FairySettings)
       },
