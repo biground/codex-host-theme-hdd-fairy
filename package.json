@@ -1,7 +1,7 @@
 {
-  "name": "dsh-fairy-zzz",
-  "version": "1.0.3-codexhost.31",
-  "description": "CodexHost Web 的 H.D.D 主题与 Fairy 动画：碳纤维暗色界面、聊天气泡、静音开机动画和会话状态眼徽。",
+  "name": "codex-host-theme-hdd-fairy",
+  "version": "2.0.1",
+  "description": "CodexHost 统一扩展（manifestVersion: 2）：H.D.D 碳纤维暗色皮肤（微软雅黑字体）、Desktop & Web 跨端 Fairy 悬浮眼徽挂件与独立控制页。",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -12,63 +12,19 @@
   "bugs": {
     "url": "https://github.com/biground/codex-host-theme-hdd-fairy/issues"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "keywords": [
     "codex-host",
     "codexhost",
+    "host-extension",
     "theme",
     "skin",
     "hdd",
     "fairy",
     "zenless-zone-zero"
   ],
-  "exports": {
-    ".": "./index.js",
-    "./client": "./client.js",
-    "./icon": "./assets/icon-180.png",
-    "./locale/*": "./locale/*",
-    "./package.json": "./package.json"
-  },
-  "icon": "assets/icon-180.png",
-  "files": [
-    "index.js",
-    "client.js",
-    "cordis.patch.yml",
-    "assets/boot.mp4",
-    "assets/poster.jpg",
-    "assets/hero.png",
-    "assets/icon-180.png",
-    "assets/agent-avatar.png",
-    "assets/hdd-logo.png",
-    "assets/hdd-mesh.png",
-    "icon.svg",
-    "README.md",
-    "LICENSE",
-    "NOTICE-fairy-dsh.md",
-    "licenses",
-    "locale",
-    "CREDITS.md",
-    "assets/running-mark-source.png"
-  ],
-  "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    },
-    "client": {
-      "platform": "web",
-      "immediately": true,
-      "inject": [
-        "@deepseek-ai/dsh-client-ui-renderer",
-        "@deepseek-ai/dsh-client-ui-primitives",
-        "@deepseek-ai/dsh-client-ui-chat",
-        "@deepseek-ai/dsh-client-ui-theme",
-        "@deepseek-ai/dsh-client-ui-session"
-      ]
-    }
-  },
   "scripts": {
-    "test": "node --test test/host.test.mjs"
+    "check": "node --check shared/fairy-core.mjs && node --check page/index.mjs && node --check widget/index.mjs && node --check web/index.mjs && node --check scripts/pack-zip.mjs",
+    "pack": "node scripts/pack-zip.mjs",
+    "test": "node --test test/extension.test.mjs"
   }
 }

@@ -9,9 +9,9 @@
 
 感谢原作者提供 H.D.D 皮肤、Fairy 眼徽集成、开机视频播放、问候流程、拖动和状态动效等实现。本仓库从其预构建插件适配到 CodexHost Web。
 
-适配修改包括：替换宿主接入与会话状态来源、移除全部音频和账户／日志扫描逻辑、移除 Agent 人设预设、接入原生设置与停用清理，以及重做暗色欢迎页、碳纤维背景、侧栏、输入控件和聊天气泡。
+适配修改包括：迁移至 CodexHost 统一 Host 扩展架构（`manifestVersion: 2`，含跨端 `page`、`widget` 与 CH Web `web` 入口）、将静音开机视频转码为符合 v2 资源白名单的 `assets/boot.webp`（Animated WebP）、移除全部音频与账户／日志扫描与 Agent 人设预设、接入 `api.storage` 共享配置与自动回收清理，以及重做暗色碳纤维欢迎页、侧栏、输入控件、微软雅黑界面字体和聊天气泡。
 
-`assets/boot.mp4` 来自直接上游，已移除音轨；`assets/poster.jpg`、`assets/hero.png`、`assets/icon-180.png` 与 `icon.svg` 沿用上游资源。上游随附的动画来源声明原样保留在 [licenses/fairy-zzz-plugin-NOTICE.md](./licenses/fairy-zzz-plugin-NOTICE.md)；该声明中的 Pi／离线逐帧文件不在本仓库发行范围内。
+`assets/boot.webp` 由上游无音轨 `boot.mp4` 转码为静音 Animated WebP 以兼容 CodexHost v2 静态资源白名单；`assets/poster.jpg`、`assets/hero.png`、`assets/icon-180.png` 与 `icon.svg` 沿用上游资源。上游随附的动画来源声明原样保留在 [licenses/fairy-zzz-plugin-NOTICE.md](./licenses/fairy-zzz-plugin-NOTICE.md)；该声明中的 Pi／离线逐帧文件不在本仓库发行范围内。
 
 ## Fairy 眼徽与状态动画：Fairy-DSH
 
@@ -21,7 +21,7 @@
 - 许可：[Apache License 2.0](./licenses/Apache-2.0.txt)
 - 原始声明：[Fairy-DSH NOTICE](./licenses/Fairy-DSH-NOTICE.txt)、[商标与内容说明](./licenses/Fairy-DSH-TRADEMARKS.md)
 
-Fairy 眼徽 SVG、分层几何、颜色、动画时长、眼睑、眨眼和状态变化经直接上游参考／改编后在本仓库 `client.js` 中使用。相关版权和 SPDX 声明继续保留在内嵌 SVG 与代码注释中，实际修改范围见 [NOTICE-fairy-dsh.md](./NOTICE-fairy-dsh.md)。
+Fairy 眼徽 SVG、分层几何、颜色、动画时长、眼睑、眨眼和状态变化经直接上游参考／改编后在本仓库 `shared/fairy-core.mjs` 中使用。相关版权和 SPDX 声明继续保留在内嵌 SVG 与代码注释中，实际修改范围见 [NOTICE-fairy-dsh.md](./NOTICE-fairy-dsh.md)。
 
 直接上游另注明其动画对照视频为 [「可能是全网最还原的Fairy」BV1SD4C63EZz](https://www.bilibili.com/video/BV1SD4C63EZz/)。这里保留该参考出处，不将视频视为新增的素材授权。
 
@@ -31,9 +31,7 @@ Fairy 眼徽 SVG、分层几何、颜色、动画时长、眼睑、眨眼和状�
 - 基于版本：`0.3.7`，固定来源 [7f3e26475e75b967d2b222a32c9fb4087f335edc](https://github.com/AbiTssE6/dsh-theme-zzz/tree/7f3e26475e75b967d2b222a32c9fb4087f335edc)
 - 代码许可：[MIT](./licenses/dsh-theme-zzz-MIT.txt)；上游字体说明原样保留在 [dsh-theme-zzz-FONT-LICENSES.md](./licenses/dsh-theme-zzz-FONT-LICENSES.md)。
 
-本主题参考其导航字体层次、白色圆润线框图标处理、深灰顶部栏与金色选中标签，改编选中标签的分层渐变，并适配 CodexHost 原生标题、标签页和按钮。上游字体说明描述的是原项目，本主题按用户要求改用本机安装的「方正综艺简体」，消息正文、代码与输入内容保留原有字体。没有复制原项目的业务功能。
-
-「方正综艺简体 / FZZongYi-M05S」属于方正字库，产品信息见 [方正综艺](https://www.foundertype.com/index.php/FontInfo/index/id/178)。本次本机字体安装使用 [genqiaolynn/fonts 中的 TTF](https://github.com/genqiaolynn/fonts/blob/master/%E6%96%B9%E6%AD%A3%E7%BB%BC%E8%89%BA%E7%AE%80%E4%BD%93.ttf)；字体二进制仅安装在本机用户字体目录，不纳入本仓库或安装包，也不由 MIT 代码许可覆盖。其他设备按已安装的字体匹配，缺少时回退思源黑体或系统字体。
+本主题参考其导航字体层次、白色圆润线框图标处理、深灰顶部栏与金色选中标签，改编选中标签的分层渐变，并适配 CodexHost 原生标题、标签页和按钮。上游字体说明描述的是原项目；本主题现已改用本机系统自带的「微软雅黑（Microsoft YaHei / Microsoft YaHei UI）」以保证界面可读性，消息正文、代码与输入内容保留原有字体，不附带第三方字体文件。没有复制原项目的业务功能。
 
 ## 宿主：CodexHost
 
@@ -46,7 +44,7 @@ Fairy 眼徽 SVG、分层几何、颜色、动画时长、眼睑、眨眼和状�
 - 这两张图是参考重建素材，不是从上游仓库取得的原始游戏资产，也不代表恢复了被遮挡的原始像素。
 - `assets/agent-avatar.png`：用户于 2026-11-16 提供的 1254×1254 PNG 原图，直接用于 Agent 回复头像，未重绘或修改图片像素；保留原图透明通道。
 - 碳纤维面板、控件和气泡外观使用 CSS 实现。
-- `assets/running-mark-source.png`：用户于 2026-11-17 提供的 87×77 游戏运行标记参考 PNG，按原文件字节复制保存。CSS sprite 从 `(30, 31)` 位置显示 20×20 火苗区域，以来源像素计算的 SVG 轮廓蒙版裁切周边；不生成或修改位图。外侧圆环使用独立 CSS 动画，未显示原图中的红色警示或数字。游戏图形权利归原权利人所有。
+- `assets/running-mark-source.png`：用户于 2026-11-17 提供的 87×77 游戏运行标记参考 PNG，按原文件字节保留在仓库中作为视觉参考；侧栏运行中火焰与同心绿波纹现已重构为左右对称、光学居中的内联矢量 SVG 与 CSS 动画，未显示原图中的红色警示或数字。游戏图形权利归原权利人所有。
 - `docs/screenshots/` 使用隔离 Web、合成工作区与测试消息生成，不包含真实用户聊天记录。
 
 ## 许可范围

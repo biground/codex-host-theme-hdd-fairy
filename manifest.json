@@ -1,0 +1,128 @@
+{
+  "manifestVersion": 2,
+  "id": "hdd-fairy",
+  "name": {
+    "en": "H.D.D + Fairy Theme",
+    "zh-CN": "H.D.D + Fairy 主题与眼徽"
+  },
+  "version": "2.0.1",
+  "description": {
+    "en": "Carbon-fiber H.D.D dark theme with Microsoft YaHei UI typography, silent H.D.D boot animation, draggable Fairy eye widget across Desktop & Web, and a unified control page.",
+    "zh-CN": "碳纤维暗色 H.D.D 主题（微软雅黑界面字体）、静音开机动画、Desktop 与 Web 跨端可拖动 Fairy 悬浮眼徽挂件，以及独立控制面板页面。"
+  },
+  "details": {
+    "en": "## Features\n\n- **Cross-Platform Boot Animation & Fairy Eye Widget (`widget`)**: Silent H.D.D boot sequence (`boot.webp`) followed by holographic greeting and a draggable animated Fairy eye floating across both Codex Desktop and CH Web, with blink/glance/glitch animations and click-to-inspect status card (auto-disabled on phones).\n- **Unified Control & Preview Page (`page`)**: Accessible from Desktop **Settings → Extensions** or Web **Extensions** top tab bar to configure eye visibility, drag lock, size, boot animation toggle, position reset, Web theme switches, and replay the boot animation.\n- **CH Web H.D.D Carbon Theme (`web`)**: Static carbon-fiber dark workspace backdrop, blue/white chat bubbles, Fairy agent avatar, yellow selected sidebar highlight, high-contrast black/white question panel, and clean **Microsoft YaHei** UI typography.\n- **Pure Frontend & Zero Audio**: No audio playback, no agent prompt modification, and no Node backend subprocess; disabling cleanly removes all styles, mounts, and DOM markers.",
+    "zh-CN": "## 功能特性\n\n- **跨端开机动画与 Fairy 悬浮眼徽挂件（`widget`）**：在 Codex Desktop 与 CH Web 主窗口自动挂载，支持静音 H.D.D 开机动画（Animated WebP）、全息居中问候、眨眼/瞟视/故障花屏动画、自由拖动停靠与点击查看状态卡片（手机端自动停用）。\n- **跨端独立控制与预览页（`page`）**：可在 Desktop「设置 → 插件页面」或 Web「插件」工作区顶部切页栏打开，集中调整眼徽显示、拖拽开关、尺寸、开机动画开关、位置复位、Web H.D.D 皮肤开关并一键重播开机动画。\n- **CH Web H.D.D 碳纤维皮肤（`web`）**：碳纤维暗色背景、蓝白聊天气泡、Fairy 回复头像、侧栏黄色渐变高亮、黑白高对比问答面板，以及清晰易读的**微软雅黑**界面字体。\n- **纯前端零后端无音频**：无音频播放、不修改模型或提示词、不启动 Node 后台子进程；停用即完整回收样式、挂载节点与 DOM 标记。"
+  },
+  "author": "biground",
+  "repository": "https://github.com/biground/codex-host-theme-hdd-fairy",
+  "categories": ["appearance", "interface"],
+  "icon": "assets/icon-180.png",
+  "screenshots": [
+    "docs/screenshots/conversation-current.png",
+    "docs/screenshots/question-panel-current.png",
+    "docs/screenshots/sidebar-current.png"
+  ],
+  "settingsSchema": [
+    {
+      "key": "showEye",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Show Fairy Eye Widget",
+        "zh-CN": "显示 Fairy 悬浮眼徽"
+      },
+      "description": {
+        "en": "Display the animated Fairy eye overlay on Desktop and Web (automatically disabled on phones).",
+        "zh-CN": "在 Desktop 与 Web 桌面端显示 Fairy 动态悬浮眼徽（手机端自动停用）。"
+      }
+    },
+    {
+      "key": "dragEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Allow Dragging Eye",
+        "zh-CN": "允许拖动眼徽"
+      },
+      "description": {
+        "en": "Drag the Fairy eye to reposition it; the position is saved per browser or Desktop window.",
+        "zh-CN": "按住眼徽拖动调整停靠位置，位置保存在当前客户端。"
+      }
+    },
+    {
+      "key": "eyeSize",
+      "type": "range",
+      "min": 72,
+      "max": 168,
+      "step": 4,
+      "default": 120,
+      "label": {
+        "en": "Eye Size (px)",
+        "zh-CN": "眼徽尺寸（px）"
+      },
+      "description": {
+        "en": "Diameter of the docked Fairy eye widget in pixels.",
+        "zh-CN": "停靠状态下 Fairy 悬浮眼徽的直径（像素）。"
+      }
+    },
+    {
+      "key": "playBootOnLaunch",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Play H.D.D Boot Animation",
+        "zh-CN": "启动时播放 H.D.D 开机动画"
+      },
+      "description": {
+        "en": "Play the silent H.D.D boot animation and holographic Fairy greeting once when opening Desktop or Web (desktop viewports only).",
+        "zh-CN": "打开 Desktop 或 Web 时播放一次静音 H.D.D 开机动画与全息 Fairy 问候演出（仅桌面端生效）。"
+      }
+    },
+    {
+      "key": "enableWebTheme",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Enable Web H.D.D Theme",
+        "zh-CN": "启用 Web H.D.D 碳纤维皮肤"
+      },
+      "description": {
+        "en": "Apply the H.D.D dark carbon-fiber theme, chat bubbles, sidebar highlights, and Microsoft YaHei UI font in CH Web.",
+        "zh-CN": "在 CH Web 中应用 H.D.D 暗色碳纤维界面、蓝白聊天气泡、侧栏高亮与微软雅黑字体。"
+      }
+    },
+    {
+      "key": "webHeroWatermark",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Show H.D.D Welcome Backdrop",
+        "zh-CN": "显示新会话 H.D.D 欢迎背景"
+      },
+      "description": {
+        "en": "Display the H.D.D logo, wireframe sphere, and time-of-day greeting on the CH Web new-session page.",
+        "zh-CN": "在 CH Web 新会话页展示 H.D.D 标志、网状球体与时段问候语。"
+      }
+    }
+  ],
+  "page": {
+    "apiVersion": 1,
+    "entry": "page/index.mjs",
+    "style": "page/style.css",
+    "title": {
+      "en": "H.D.D + Fairy",
+      "zh-CN": "H.D.D + Fairy"
+    }
+  },
+  "widget": {
+    "apiVersion": 1,
+    "entry": "widget/index.mjs",
+    "style": "widget/style.css"
+  },
+  "web": {
+    "apiVersion": 1,
+    "entry": "web/index.mjs",
+    "style": "web/style.css"
+  }
+}
