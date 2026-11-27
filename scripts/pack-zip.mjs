@@ -22,9 +22,11 @@ const INCLUDE_DIRS = [
   'licenses',
 ]
 const INCLUDE_SCREENSHOTS_FROM_MANIFEST = true
+const SKIP_DIRS = new Set(['.git', '.work', '.workorders', 'node_modules'])
 
 function walkDir(dir, prefix, out) {
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.isDirectory() && SKIP_DIRS.has(entry.name)) continue
     const full = path.join(dir, entry.name)
     const rel = `${prefix}/${entry.name}`
     if (entry.isDirectory()) walkDir(full, rel, out)

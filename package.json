@@ -1,7 +1,7 @@
 {
   "name": "codex-host-theme-hdd-fairy",
-  "version": "2.0.1",
-  "description": "CodexHost 统一扩展（manifestVersion: 2）：H.D.D 碳纤维暗色皮肤（微软雅黑字体）、Desktop & Web 跨端 Fairy 悬浮眼徽挂件与独立控制页。",
+  "version": "2.2.0",
+  "description": "CodexHost 统一扩展（manifestVersion: 2）：三套绝区零风格全站预设（黑金重工 / 新艾利都街头 HUD / 自动浅色绳网档案）、6 大面板独立混搭、元素周期表模型选择器与超频胶囊滑轨、12 项交互动效、算力用量面板及跨端 Fairy 动态眼徽。",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -23,8 +23,8 @@
     "zenless-zone-zero"
   ],
   "scripts": {
-    "check": "node --check shared/fairy-core.mjs && node --check page/index.mjs && node --check widget/index.mjs && node --check web/index.mjs && node --check scripts/pack-zip.mjs",
+    "check": "node --check shared/fairy-core.mjs && node --check page/index.mjs && node --check widget/index.mjs && node --check web/index.mjs && node --check web/usage-data.mjs && node --check web/usage-panel-css.mjs && node --check web/usage-panel.mjs && node --check scripts/pack-zip.mjs && node --check shared/hdd-icons.mjs && node --check web/panels/tokens.mjs && node --check web/panels/shell-css.mjs && node --check web/panels/chat-css.mjs && node --check web/panels/chat-avatar-fx.mjs && node --check web/panels/composer-css.mjs && node --check web/panels/model-select-css.mjs && node --check web/panels/model-select-fx.mjs && node --check web/panels/rightbar-css.mjs && node --check web/panels/rightbar-files.mjs && node --check web/panels/settings-css.mjs && node --check web/panels/settings-shadow.mjs && node --check web/panels/juice-css.mjs && node --check web/panels/juice-fx.mjs",
     "pack": "node scripts/pack-zip.mjs",
-    "test": "node --test test/extension.test.mjs"
+    "test": "node --test test/extension.test.mjs test/usage-panel.test.mjs"
   }
 }

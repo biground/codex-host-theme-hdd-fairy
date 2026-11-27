@@ -5,23 +5,28 @@
     "en": "H.D.D + Fairy Theme",
     "zh-CN": "H.D.D + Fairy 主题与眼徽"
   },
-  "version": "2.0.1",
+  "version": "2.2.0",
   "description": {
-    "en": "Carbon-fiber H.D.D dark theme with Microsoft YaHei UI typography, silent H.D.D boot animation, draggable Fairy eye widget across Desktop & Web, and a unified control page.",
-    "zh-CN": "碳纤维暗色 H.D.D 主题（微软雅黑界面字体）、静音开机动画、Desktop 与 Web 跨端可拖动 Fairy 悬浮眼徽挂件，以及独立控制面板页面。"
+    "en": "Zenless Zone Zero H.D.D + Fairy unified theme with 3 switchable presets (Amber Black-Gold, Street HUD, Light Archive), 6-panel mix-and-match matrix, Periodic Table model selector, Overdrive effort slider, 12 interaction juice FX, usage telemetry dashboard, and cross-platform animated Fairy eye.",
+    "zh-CN": "绝区零 H.D.D + Fairy 全端视觉扩展：内置黑金重工、新艾利都街头 HUD、绳网高反差浅色三套自动明暗联动预设，支持 6 大面板独立混搭、元素周期表模型选择器、超频胶囊滑轨、12 项机械交互动效、算力用量终端与跨端 Fairy 动态眼徽。"
   },
   "details": {
-    "en": "## Features\n\n- **Cross-Platform Boot Animation & Fairy Eye Widget (`widget`)**: Silent H.D.D boot sequence (`boot.webp`) followed by holographic greeting and a draggable animated Fairy eye floating across both Codex Desktop and CH Web, with blink/glance/glitch animations and click-to-inspect status card (auto-disabled on phones).\n- **Unified Control & Preview Page (`page`)**: Accessible from Desktop **Settings → Extensions** or Web **Extensions** top tab bar to configure eye visibility, drag lock, size, boot animation toggle, position reset, Web theme switches, and replay the boot animation.\n- **CH Web H.D.D Carbon Theme (`web`)**: Static carbon-fiber dark workspace backdrop, blue/white chat bubbles, Fairy agent avatar, yellow selected sidebar highlight, high-contrast black/white question panel, and clean **Microsoft YaHei** UI typography.\n- **Pure Frontend & Zero Audio**: No audio playback, no agent prompt modification, and no Node backend subprocess; disabling cleanly removes all styles, mounts, and DOM markers.",
-    "zh-CN": "## 功能特性\n\n- **跨端开机动画与 Fairy 悬浮眼徽挂件（`widget`）**：在 Codex Desktop 与 CH Web 主窗口自动挂载，支持静音 H.D.D 开机动画（Animated WebP）、全息居中问候、眨眼/瞟视/故障花屏动画、自由拖动停靠与点击查看状态卡片（手机端自动停用）。\n- **跨端独立控制与预览页（`page`）**：可在 Desktop「设置 → 插件页面」或 Web「插件」工作区顶部切页栏打开，集中调整眼徽显示、拖拽开关、尺寸、开机动画开关、位置复位、Web H.D.D 皮肤开关并一键重播开机动画。\n- **CH Web H.D.D 碳纤维皮肤（`web`）**：碳纤维暗色背景、蓝白聊天气泡、Fairy 回复头像、侧栏黄色渐变高亮、黑白高对比问答面板，以及清晰易读的**微软雅黑**界面字体。\n- **纯前端零后端无音频**：无音频播放、不修改模型或提示词、不启动 Node 后台子进程；停用即完整回收样式、挂载节点与 DOM 标记。"
+    "en": "## Highlights in v2.2.0\n\n- **Three Switchable ZZZ Presets with Auto Light/Dark Linkage**: Switch cleanly between **H.D.D Amber Terminal** (Black-Gold dark), **New Eridu Street HUD** (Acid-Lime dark), and **Random Play Archive** (high-contrast light workspace with obsidian code blocks & dark terminal), or mix and match across 6 independent panel regions (`shell`, `chat`, `composer`, `rightbar`, `settings`, `usage`).\n- **Periodic Table Model Selector & Overdrive Capsule Slider**: Antigravity 2x2 element core cards (`01 H`, `06 C`, `10 Ne`, `18 Ar`) paired with a Codex-style full-width capsule thinking effort slider featuring a pure white circular thumb, smooth Overdrive stardust flow, and zero-flicker stay-open switching.\n- **12-Point ZZZ Interaction Juice & Live Chat Fairy Eye**: Tactile mechanical keycap press, 45-deg metallic sheen, focus hazard march, Telegram-style consecutive assistant grouping, and viewport-only animated Fairy eye badges (auto-paused when hidden, toggleable).\n- **Welcome Usage Telemetry & 26-Week Heatmap**: Collapsible single-line capsule and full KPI / Model / Harness / Quota dashboard reading native CodexHost statistics.\n- **Cross-Platform Fairy Eye Widget & Control Console (`widget` + `page`)**: Silent H.D.D boot animation, draggable Fairy eye across Desktop & Web (auto-disabled on phones), and a zero-emoji 36-icon geometric SVG control page.\n- **Full CodexHost v0.28.1 Compatibility & Mobile 390px Polish**: Native transcript virtualization compatibility, obsidian code fold bar, unified Harness menu skin, watching indicators, remote topology & pairing cards, and elastic mobile composer.\n- **Pure Frontend & Zero Audio**: No backend subprocess, no audio, no prompt mutation; disabling cleanly restores all styles and DOM.",
+    "zh-CN": "## v2.2.0 核心特性\n\n- **三套绝区零风格预设 · 自动明暗联动**：一键切换 **方案 A · H.D.D 黑金重工**、**方案 B · 新艾利都街头 HUD** 与 **方案 C · 绳网高反差白卡（自动切整页浅色，同时保留护眼黑曜石代码块与暗色终端）**；并支持 **6 大面板区域**（左侧栏与顶栏、对话流与工具卡、输入舱与问答审批、右侧工作台、设置与插件中心、新会话算力用量面板）独立启用与跨预设混搭。\n- **Antigravity 元素周期表模型选择器 & 超频胶囊滑轨**：独创 2x2 元素核心矩阵（`01 H` / `06 C` / `10 Ne` / `18 Ar`）与 Codex 风格饱满胶囊思考档位滑轨，纯白圆形滑块配合超频态胶囊内单向流光微粒，切换档位面板原地保持不闪烁。\n- **12 项绝区零交互动效（Juice）与气泡动态眼徽**：覆盖机械键帽按压、45 度金属扫光、输入舱警戒条推进与悬停锁定反馈；连续助手回复自动采用 Telegram 风格头像归组，仅在视口内组尾气泡按需挂载轻量动态 Fairy 眼徽（隐藏窗口自动暂停，支持一键开关）。\n- **新会话算力用量终端**：欢迎页顶部集成可折叠算力胶囊条与展开态统计看板（KPI、26 周热力图、模型/Harness 拆解与模型配额），直接读取 CodexHost 原生统计。\n- **跨端悬浮眼徽与全零 Emoji 控制中心（`widget` + `page`）**：Desktop 与 Web 主窗口共享静音 H.D.D 开机动画与可拖动 Fairy 眼徽（手机端自动停用），全仓 36 枚工业几何单线 SVG 图标零 Emoji 覆盖。\n- **完整适配 CodexHost v0.28.1 与 390px 移动端**：无缝兼容原生对话虚拟滚动、长代码块黑曜石折叠条、统一 Harness 选择器、监听中标识、远程主机拓扑与配对面板，以及手机端抽屉侧栏与弹性底栏。\n- **纯前端 · 零后端 · 无音频**：未声明 `backend`，不启动 Node 子进程、不播放音频、不修改提示词；停用即完整回收全部样式与 DOM 标记。"
   },
   "author": "biground",
   "repository": "https://github.com/biground/codex-host-theme-hdd-fairy",
-  "categories": ["appearance", "interface"],
+  "categories": [
+    "appearance",
+    "interface",
+    "analytics"
+  ],
   "icon": "assets/icon-180.png",
   "screenshots": [
-    "docs/screenshots/conversation-current.png",
-    "docs/screenshots/question-panel-current.png",
-    "docs/screenshots/sidebar-current.png"
+    "docs/screenshots/v2.2.0/01-amber-chat-periodic-slider.png",
+    "docs/screenshots/v2.2.0/06-street-chat-periodic-slider.png",
+    "docs/screenshots/v2.2.0/09-archive-chat-periodic-slider.png",
+    "docs/screenshots/v2.2.0/04-amber-fairy-control.png"
   ],
   "settingsSchema": [
     {
@@ -93,6 +98,19 @@
       }
     },
     {
+      "key": "enableMotionJuice",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Enable ZZZ Interaction Juice",
+        "zh-CN": "启用绝区零交互动效（Juice）"
+      },
+      "description": {
+        "en": "Enable mechanical keycap press, 45° metallic sheen, composer focus hazard march, tactical click bursts, and hover lock feedback across panels.",
+        "zh-CN": "开启 12 项机械键帽按压、45° 金属扫光、输入舱警戒条推进、战术点击瞬闪与悬停锁定反馈（自动遵循减弱动态设置）。"
+      }
+    },
+    {
       "key": "webHeroWatermark",
       "type": "boolean",
       "default": true,
@@ -103,6 +121,373 @@
       "description": {
         "en": "Display the H.D.D logo, wireframe sphere, and time-of-day greeting on the CH Web new-session page.",
         "zh-CN": "在 CH Web 新会话页展示 H.D.D 标志、网状球体与时段问候语。"
+      }
+    },
+    {
+      "key": "enableChatAnimatedAvatar",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Animated Chat Fairy Avatar",
+        "zh-CN": "对话气泡动态 Fairy 眼徽"
+      },
+      "description": {
+        "en": "Mount a lightweight animated Fairy eye badge on visible tail assistant bubbles in the chat viewport.",
+        "zh-CN": "仅对当前视口内连续回复的组尾助手气泡按需挂载轻量动态 Fairy 眼徽（滚出视口即卸载）。"
+      }
+    },
+    {
+      "key": "globalPreset",
+      "type": "select",
+      "default": "amber",
+      "label": {
+        "en": "Global H.D.D Preset",
+        "zh-CN": "全站 H.D.D 预设"
+      },
+      "options": [
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "panelShellEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: Sidebar, Header & Overlays",
+        "zh-CN": "启用皮肤：左侧栏、顶栏与全局浮层"
+      }
+    },
+    {
+      "key": "panelShellPreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: Sidebar, Header & Overlays",
+        "zh-CN": "独立预设：左侧栏、顶栏与全局浮层"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "panelChatEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: Welcome, Chat & Tool Cards",
+        "zh-CN": "启用皮肤：欢迎页、对话流与工具/计划/子代理卡"
+      }
+    },
+    {
+      "key": "panelChatPreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: Welcome, Chat & Tool Cards",
+        "zh-CN": "独立预设：欢迎页、对话流与工具/计划/子代理卡"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "panelComposerEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: Composer, Queue & Approvals",
+        "zh-CN": "启用皮肤：输入舱、排队托盘与审批/问答面板"
+      }
+    },
+    {
+      "key": "panelComposerPreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: Composer, Queue & Approvals",
+        "zh-CN": "独立预设：输入舱、排队托盘与审批/问答面板"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "panelRightbarEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: Right Workbench",
+        "zh-CN": "启用皮肤：右侧工作台"
+      }
+    },
+    {
+      "key": "panelRightbarPreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: Right Workbench",
+        "zh-CN": "独立预设：右侧工作台"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "panelSettingsEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: Settings & Plugin Manager",
+        "zh-CN": "启用皮肤：设置中心与插件管理中心"
+      }
+    },
+    {
+      "key": "panelSettingsPreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: Settings & Plugin Manager",
+        "zh-CN": "独立预设：设置中心与插件管理中心"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "webRightbarFilesEnhance",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Enhance Rightbar File Tree",
+        "zh-CN": "右侧文件树轻量增强"
+      },
+      "description": {
+        "en": "Enable local search filtering and change markers in the rightbar file tree.",
+        "zh-CN": "启用右侧文件树轻量搜索过滤与变更标记增强。"
+      }
+    },
+    {
+      "key": "webUsagePanel",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en": "Theme: New-Session Usage Telemetry",
+        "zh-CN": "启用皮肤：新会话算力用量面板"
+      },
+      "description": {
+        "en": "Display the collapsible Zenless Zone Zero usage telemetry bar and dashboard above the CH Web new-session welcome screen.",
+        "zh-CN": "在 CH Web 新会话欢迎页上方显示可折叠的绝区零风格算力用量胶囊条与统计终端（读取 CodexHost 原生用量统计）。"
+      }
+    },
+    {
+      "key": "webUsagePreset",
+      "type": "select",
+      "default": "follow",
+      "label": {
+        "en": "Preset: New-Session Usage Telemetry",
+        "zh-CN": "独立预设：新会话算力用量面板"
+      },
+      "description": {
+        "en": "Follow the global preset or choose an independent style for the usage panel.",
+        "zh-CN": "默认跟随全站预设，也可为算力用量面板单独指定风格。"
+      },
+      "options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow Global Preset",
+            "zh-CN": "跟随全站"
+          }
+        },
+        {
+          "value": "amber",
+          "label": {
+            "en": "H.D.D Amber Terminal",
+            "zh-CN": "方案 A · H.D.D 黑金重工"
+          }
+        },
+        {
+          "value": "street",
+          "label": {
+            "en": "New Eridu Street HUD",
+            "zh-CN": "方案 B · 新艾利都街头 HUD"
+          }
+        },
+        {
+          "value": "archive",
+          "label": {
+            "en": "Random Play Archive",
+            "zh-CN": "方案 C · 绳网高反差白卡"
+          }
+        }
+      ]
+    },
+    {
+      "key": "webUsageDefaultExpanded",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en": "Expand Usage Panel by Default",
+        "zh-CN": "默认展开完整用量面板"
+      },
+      "description": {
+        "en": "When off (recommended), new sessions start with a compact single-line telemetry capsule bar so the welcome screen stays spacious.",
+        "zh-CN": "关闭时（默认推荐），新会话仅在顶部展示一行紧凑算力胶囊条，不遮挡居中欢迎页；点击即可随时展开完整面板。"
       }
     }
   ],

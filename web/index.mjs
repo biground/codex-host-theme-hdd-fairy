@@ -1,23 +1,37 @@
 import {
   DEFAULT_SETTINGS,
+  EYE_ANIMATION_CSS,
+  createFairyEye,
   hddWelcomeLine,
   normalizeSettings,
-  subscribeColorSchemeBroadcast,
+  PANEL_KEYS,
+  resolvePanelPreset,
 } from '../shared/fairy-core.mjs'
+import { mountUsagePanel } from './usage-panel.mjs'
+import { TOKENS_CSS } from './panels/tokens.mjs'
+import { SHELL_PANEL_CSS } from './panels/shell-css.mjs'
+import { CHAT_PANEL_CSS } from './panels/chat-css.mjs'
+import { COMPOSER_PANEL_CSS } from './panels/composer-css.mjs'
+import { MODEL_SELECT_PANEL_CSS } from './panels/model-select-css.mjs'
+import { RIGHTBAR_PANEL_CSS } from './panels/rightbar-css.mjs'
+import { SETTINGS_PANEL_CSS } from './panels/settings-css.mjs'
+import { JUICE_PANEL_CSS } from './panels/juice-css.mjs'
+import { mountJuiceFx } from './panels/juice-fx.mjs'
+import { mountChatAvatarFx } from './panels/chat-avatar-fx.mjs'
+import { mountModelSelectEnhancer } from './panels/model-select-fx.mjs'
+import { mountRightbarFilesEnhance } from './panels/rightbar-files.mjs'
+import { mountSettingsShadowBridge } from './panels/settings-shadow.mjs'
 
-function detectWebColorScheme(doc, preferred) {
-  if (preferred === 'dark' || preferred === 'light') return preferred
-  const widgetHost = doc.querySelector('[data-cx-host-widget="hdd-fairy"]')
-  const widgetScheme = widgetHost?.style?.colorScheme
-  if (widgetScheme === 'dark' || widgetScheme === 'light') return widgetScheme
-  const root = doc.documentElement
-  const attr = root.getAttribute('data-theme') || root.getAttribute('data-dsw-theme')
-  if (attr === 'dark' || attr === 'light') return attr
-  if (root.classList.contains('dark')) return 'dark'
-  if (root.classList.contains('light')) return 'light'
-  const computed = window.getComputedStyle?.(root)?.colorScheme
-  if (computed === 'dark' || computed === 'light') return computed
-  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light'
+function resolvePresetThemeScheme(settings) {
+  if (!settings.enableWebTheme) return 'off'
+  return settings.globalPreset === 'archive' ? 'light' : 'dark'
+}
+
+function findHeroStack(scope) {
+  if (!scope) return null
+  const anchor = scope.querySelector('[class*="_fishHitbox"]') ?? scope.querySelector('[class*="_titleGroup"]')
+  const headline = anchor?.closest('[class*="_headline"]')
+  return headline?.parentElement ?? null
 }
 
 export async function activate(api) {
@@ -28,8 +42,52 @@ export async function activate(api) {
   let settings = normalizeSettings(await api.storage.get().catch(() => DEFAULT_SETTINGS))
   if (signal.aborted) return
 
-  let broadcastScheme = null
-  let currentScheme = detectWebColorScheme(doc, broadcastScheme)
+  const rightbarFiles = mountRightbarFilesEnhance(api, () => settings)
+  const settingsShadow = mountSettingsShadowBridge(api, () => settings)
+  const juiceFx = mountJuiceFx(api, () => settings)
+  const chatAvatarFx = mountChatAvatarFx(api, () => settings)
+  const modelSelectFx = mountModelSelectEnhancer(api, () => settings)
+  api.track(() => rightbarFiles.dispose())
+  api.track(() => settingsShadow.dispose())
+  api.track(() => juiceFx.dispose())
+  api.track(() => chatAvatarFx.dispose())
+  api.track(() => modelSelectFx.dispose())
+
+  for (const [panel, css] of Object.entries({ tokens: TOKENS_CSS, shell: SHELL_PANEL_CSS, chat: CHAT_PANEL_CSS, composer: COMPOSER_PANEL_CSS, 'model-select': MODEL_SELECT_PANEL_CSS, rightbar: RIGHTBAR_PANEL_CSS, settings: SETTINGS_PANEL_CSS, juice: JUICE_PANEL_CSS })) {
+    const style = doc.createElement('style')
+    style.dataset.cxWebExtPanel = panel
+    style.textContent = css
+    ;(doc.head ?? root).append(style)
+    api.track(() => style.remove())
+  }
+
+  const panelKeys = PANEL_KEYS.filter((key) => key !== 'usage')
+  const syncPanelMarks = () => {
+    if (settings.enableWebTheme) root.setAttribute('data-cx-ext-hdd-fairy-preset', settings.globalPreset)
+    else root.removeAttribute('data-cx-ext-hdd-fairy-preset')
+    if (settings.enableWebTheme && settings.enableMotionJuice) root.setAttribute('data-hf-juice', '1')
+    else root.removeAttribute('data-hf-juice')
+    for (const panel of panelKeys) {
+      const enabled = settings.enableWebTheme && settings[`panel${panel[0].toUpperCase()}${panel.slice(1)}Enabled`]
+      if (enabled) {
+        root.setAttribute(`data-hf-panel-${panel}`, '1')
+        root.setAttribute(`data-hf-preset-${panel}`, resolvePanelPreset(settings, panel))
+      } else {
+        root.removeAttribute(`data-hf-panel-${panel}`)
+        root.removeAttribute(`data-hf-preset-${panel}`)
+      }
+    }
+  }
+  api.track(() => {
+    root.removeAttribute('data-cx-ext-hdd-fairy-preset')
+    root.removeAttribute('data-hf-juice')
+    for (const panel of panelKeys) {
+      root.removeAttribute(`data-hf-panel-${panel}`)
+      root.removeAttribute(`data-hf-preset-${panel}`)
+    }
+  })
+
+  const hddLogoUrl = api.assets.url('assets/hdd-logo.png')
 
   // Publish authenticated static asset URLs as CSS custom properties for web/style.css.
   const esc = (url) => String(url).replace(/["\\]/g, '\\$&')
@@ -38,7 +96,7 @@ export async function activate(api) {
   assetStyle.textContent = [
     'html:is([data-cx-ext-hdd-fairy-theme-dark],[data-cx-ext-hdd-fairy-theme-light]){',
     `--hf-asset-avatar:url("${esc(api.assets.url('assets/agent-avatar.png'))}");`,
-    `--hf-asset-hdd-logo:url("${esc(api.assets.url('assets/hdd-logo.png'))}");`,
+    `--hf-asset-hdd-logo:url("${esc(hddLogoUrl)}");`,
     `--hf-asset-hdd-mesh:url("${esc(api.assets.url('assets/hdd-mesh.png'))}");`,
     `--hf-asset-running-mark:url("${esc(api.assets.url('assets/running-mark-source.png'))}");`,
     '}',
@@ -46,19 +104,178 @@ export async function activate(api) {
   ;(doc.head ?? root).append(assetStyle)
   api.track(() => assetStyle.remove())
 
-  // Track hero welcome mount & geometry
+  const eyeAnimStyle = doc.createElement('style')
+  eyeAnimStyle.dataset.cxWebExtEyeCss = api.id
+  eyeAnimStyle.textContent = EYE_ANIMATION_CSS
+  ;(doc.head ?? root).append(eyeAnimStyle)
+  api.track(() => eyeAnimStyle.remove())
+
+  // Track sidebar brand replacement (expanded lockup & collapsed rail eye)
+  let brandMount = null
+  let brandTarget = null
+  let brandEye = null
+  let railMount = null
+  let railTarget = null
+  let railEye = null
+
+  const teardownBrandExpanded = () => {
+    brandEye?.dispose()
+    brandEye = null
+    brandMount?.dispose()
+    brandMount = null
+    brandTarget = null
+  }
+
+  const teardownBrandRail = () => {
+    railEye?.dispose()
+    railEye = null
+    railMount?.dispose()
+    railMount = null
+    railTarget = null
+  }
+
+  const teardownBrand = () => {
+    teardownBrandExpanded()
+    teardownBrandRail()
+  }
+
+  const reconcileBrand = () => {
+    if (signal.aborted) return
+    if (!settings.enableWebTheme || !settings.panelShellEnabled) {
+      teardownBrand()
+      return
+    }
+    const sidebar = doc.querySelector('[data-cx-region="sidebar"]')
+    if (!sidebar) {
+      teardownBrand()
+      return
+    }
+
+    const identity = sidebar.querySelector('[class*="_brandIdentity"]')
+    if (!identity) {
+      teardownBrandExpanded()
+    } else if (identity !== brandTarget || !brandMount || !brandMount.container.isConnected) {
+      teardownBrandExpanded()
+      const mounted = api.dom.mount(identity, 'append')
+      if (mounted) {
+        brandMount = mounted
+        brandTarget = identity
+        mounted.container.className = 'hf-sb-brand-mount'
+
+        const wrap = doc.createElement('span')
+        wrap.className = 'hf-sb-brand'
+        wrap.setAttribute('aria-hidden', 'true')
+
+        const eyeSlot = doc.createElement('span')
+        eyeSlot.className = 'hf-sb-brand-eye'
+        brandEye = createFairyEye(doc, { signal, interactiveGlitch: false, idSuffix: 'sb' })
+        eyeSlot.append(brandEye.element)
+
+        const textWrap = doc.createElement('span')
+        textWrap.className = 'hf-sb-brand-text'
+
+        const title = doc.createElement('b')
+        title.className = 'hf-sb-brand-title'
+        title.textContent = 'H.D.D System'
+
+        const badge = doc.createElement('span')
+        badge.className = 'hf-sb-brand-badge'
+        badge.textContent = 'Fairy Ⅲ型人工智能'
+
+        textWrap.append(title, badge)
+        wrap.append(eyeSlot, textWrap)
+        mounted.container.append(wrap)
+      }
+    }
+
+    const railMark = sidebar.querySelector('[class*="_railMark"]')
+    if (!railMark) {
+      teardownBrandRail()
+    } else if (railMark !== railTarget || !railMount || !railMount.container.isConnected) {
+      teardownBrandRail()
+      const mounted = api.dom.mount(railMark, 'append')
+      if (mounted) {
+        railMount = mounted
+        railTarget = railMark
+        mounted.container.className = 'hf-sb-rail-mount'
+
+        const eyeSlot = doc.createElement('span')
+        eyeSlot.className = 'hf-sb-rail-eye'
+        railEye = createFairyEye(doc, { signal, interactiveGlitch: false, idSuffix: 'rail' })
+        eyeSlot.append(railEye.element)
+        mounted.container.append(eyeSlot)
+      }
+    }
+  }
+
+  // Track hero welcome mount, usage panel mount & geometry
   let heroMount = null
   let heroContent = null
+  let heroScrollEl = null
   let heroObserver = null
-  let observedCard = null
+  let observedNodes = new Set()
   let geometryFrame = 0
+  let geometrySettleTimer = 0
+
+  let usageMount = null
+  let usageTarget = null
+  let usageHostHero = null
+  let usagePanel = null
+
+  const syncObservedHeroTargets = () => {
+    if (!heroObserver || !heroContent) return
+    const nextTargets = new Set([heroContent])
+    const card = heroContent.querySelector('[data-composer-card]')
+    if (card) {
+      nextTargets.add(card)
+      const composerHero = card.closest('[class*="_composerHero"]') ?? card.parentElement
+      if (composerHero) nextTargets.add(composerHero)
+    }
+    if (usageMount?.container?.isConnected) {
+      nextTargets.add(usageMount.container)
+    }
+    for (const prev of observedNodes) {
+      if (!nextTargets.has(prev)) heroObserver.unobserve(prev)
+    }
+    for (const next of nextTargets) {
+      if (!observedNodes.has(next)) heroObserver.observe(next)
+    }
+    observedNodes = nextTargets
+  }
+
+  const setHeroUsageAttr = (el, val) => {
+    if (!el) return
+    if (!val) {
+      if (el.hasAttribute('data-hf-usage')) el.removeAttribute('data-hf-usage')
+    } else if (el.getAttribute('data-hf-usage') !== val) {
+      el.setAttribute('data-hf-usage', val)
+    }
+  }
+
+  const teardownUsage = () => {
+    usagePanel?.dispose()
+    usagePanel = null
+    usageMount?.dispose()
+    usageMount = null
+    usageTarget = null
+    if (usageHostHero) {
+      setHeroUsageAttr(usageHostHero, null)
+      usageHostHero = null
+    }
+  }
 
   const teardownHero = () => {
     cancelAnimationFrame(geometryFrame)
+    clearTimeout(geometrySettleTimer)
     geometryFrame = 0
+    geometrySettleTimer = 0
     heroObserver?.disconnect()
     heroObserver = null
-    observedCard = null
+    observedNodes = new Set()
+    if (heroScrollEl) {
+      heroScrollEl.removeEventListener('scroll', scheduleHeroGeometry)
+      heroScrollEl = null
+    }
     if (heroContent) {
       for (const prop of ['--hf-hdd-x', '--hf-hdd-y', '--hf-hdd-w', '--hf-hdd-bottom']) {
         heroContent.style.removeProperty(prop)
@@ -97,9 +314,62 @@ export async function activate(api) {
     })
   }
 
+  const reconcileUsage = () => {
+    if (signal.aborted) return
+    const activeHero = settings.enableWebTheme && settings.webUsagePanel
+      ? doc.querySelector('[data-conversation-content][data-content-phase="hero"]')
+      : null
+    const stack = activeHero ? findHeroStack(activeHero) : null
+
+    if (!activeHero || !stack) {
+      if (usageMount) {
+        teardownUsage()
+        scheduleHeroGeometry()
+      }
+      return
+    }
+
+    if (stack === usageTarget && usageMount && usageMount.container.isConnected && usagePanel) {
+      usagePanel.syncSettings({ ...settings, webUsagePreset: resolvePanelPreset(settings, 'usage') })
+      setHeroUsageAttr(activeHero, usagePanel.expanded ? 'expanded' : 'collapsed')
+      return
+    }
+
+    teardownUsage()
+    const mounted = api.dom.mount(stack, 'prepend')
+    if (!mounted) return
+    usageMount = mounted
+    usageTarget = stack
+    usageHostHero = activeHero
+    mounted.container.className = 'hf-usage-mount'
+
+    const shadow = mounted.container.attachShadow({ mode: 'open' })
+    usagePanel = mountUsagePanel(shadow, {
+      doc,
+      win: window,
+      initialSettings: { ...settings, webUsagePreset: resolvePanelPreset(settings, 'usage') },
+      getLocale: () => doc.documentElement.lang || navigator.language || 'zh-CN',
+      hddLogoUrl,
+      onPresetSelect: (nextPreset) => {
+        const next = normalizeSettings({ ...settings, webUsagePreset: nextPreset })
+        settings = next
+        api.storage.set(next).catch(() => {})
+      },
+      onExpandedChange: (isExpanded) => {
+        setHeroUsageAttr(activeHero, isExpanded ? 'expanded' : 'collapsed')
+        syncObservedHeroTargets()
+        scheduleHeroGeometry()
+        clearTimeout(geometrySettleTimer)
+        geometrySettleTimer = setTimeout(scheduleHeroGeometry, 180)
+      },
+    })
+    syncObservedHeroTargets()
+    scheduleHeroGeometry()
+  }
+
   const reconcileHero = () => {
     if (signal.aborted) return
-    const wantsHero = settings.enableWebTheme && settings.webHeroWatermark && currentScheme === 'dark'
+    const wantsHero = settings.enableWebTheme && settings.panelChatEnabled && settings.webHeroWatermark
     const candidate = wantsHero ? doc.querySelector('[data-conversation-content][data-content-phase="hero"]') : null
 
     if (!candidate) {
@@ -112,14 +382,7 @@ export async function activate(api) {
       if (greetingEl && greetingEl.textContent !== nextGreeting) {
         greetingEl.textContent = nextGreeting
       }
-      if (heroObserver) {
-        const card = candidate.querySelector('[data-composer-card]')
-        if (card && card !== observedCard) {
-          if (observedCard) heroObserver.unobserve(observedCard)
-          heroObserver.observe(card)
-          observedCard = card
-        }
-      }
+      syncObservedHeroTargets()
       scheduleHeroGeometry()
       return
     }
@@ -143,16 +406,19 @@ export async function activate(api) {
     copy.querySelector('.hf-hdd-greeting').textContent = hddWelcomeLine(doc.documentElement.lang || navigator.language)
     mounted.container.append(copy)
 
+    const scroller = candidate.querySelector('[data-conversation-scroll]')
+    if (scroller) {
+      heroScrollEl = scroller
+      scroller.addEventListener('scroll', scheduleHeroGeometry, { passive: true })
+    }
+
     if (typeof ResizeObserver === 'function') {
       heroObserver = new ResizeObserver(scheduleHeroGeometry)
-      heroObserver.observe(candidate)
-      const card = candidate.querySelector('[data-composer-card]')
-      if (card) {
-        heroObserver.observe(card)
-        observedCard = card
-      }
+      syncObservedHeroTargets()
     }
     updateHeroGeometry()
+    clearTimeout(geometrySettleTimer)
+    geometrySettleTimer = setTimeout(scheduleHeroGeometry, 160)
   }
 
   let appliedTheme = null
@@ -160,8 +426,7 @@ export async function activate(api) {
 
   const syncThemeMarks = () => {
     if (signal.aborted) return
-    currentScheme = detectWebColorScheme(doc, broadcastScheme)
-    const nextTheme = !settings.enableWebTheme ? 'off' : currentScheme === 'dark' ? 'dark' : 'light'
+    const nextTheme = resolvePresetThemeScheme(settings)
     if (nextTheme !== appliedTheme) {
       if (nextTheme === 'off') {
         api.dom.unmark(root, 'theme-dark')
@@ -175,7 +440,7 @@ export async function activate(api) {
       }
       appliedTheme = nextTheme
     }
-    const nextHero = settings.enableWebTheme && settings.webHeroWatermark && currentScheme === 'dark'
+    const nextHero = settings.enableWebTheme && settings.panelChatEnabled && settings.webHeroWatermark
     if (nextHero !== appliedHero) {
       if (nextHero) {
         api.dom.mark(root, 'hero')
@@ -184,33 +449,55 @@ export async function activate(api) {
       }
       appliedHero = nextHero
     }
+    syncPanelMarks()
+    rightbarFiles.reconcile()
+    settingsShadow.reconcile()
+    juiceFx.reconcile()
+    chatAvatarFx.reconcile()
+    modelSelectFx.reconcile()
     if (!settings.enableWebTheme) {
+      teardownUsage()
       teardownHero()
+      teardownBrand()
       return
     }
     reconcileHero()
+    reconcileUsage()
+    reconcileBrand()
   }
 
   syncThemeMarks()
-
-  const offScheme = subscribeColorSchemeBroadcast((next) => {
-    broadcastScheme = next
-    syncThemeMarks()
-  }, signal)
 
   const offStorage = api.storage.onChange((next) => {
     settings = normalizeSettings(next)
     syncThemeMarks()
   })
 
+  const isOwnedMountMutation = (record, mount, parent) => {
+    if (!mount) return false
+    if (mount.container.contains(record.target)) return true
+    if (record.type === 'childList' && record.target === parent) {
+      const touched = [...record.addedNodes, ...record.removedNodes]
+      if (touched.length > 0 && touched.every((node) => node === mount.container)) {
+        return true
+      }
+    }
+    return false
+  }
+
   const isRelevantMutation = (record) => {
-    if (heroMount && heroMount.container.contains(record.target)) return false
+    if (isOwnedMountMutation(record, heroMount, heroContent)) return false
+    if (isOwnedMountMutation(record, usageMount, usageTarget)) return false
+    if (isOwnedMountMutation(record, brandMount, brandTarget)) return false
+    if (isOwnedMountMutation(record, railMount, railTarget)) return false
+    if (record.target instanceof Element && record.target.closest('[data-cx-ext-owned="hdd-fairy"]')) return false
     if (record.type === 'childList') {
-      if (heroMount && record.target === heroContent) {
-        const touched = [...record.addedNodes, ...record.removedNodes]
-        if (touched.length > 0 && touched.every((node) => node === heroMount.container)) {
-          return false
-        }
+      const touched = [...(record.addedNodes ?? []), ...(record.removedNodes ?? [])]
+      if (
+        touched.length > 0 &&
+        touched.every((node) => typeof node?.getAttribute === 'function' && node.getAttribute('data-cx-ext-owned') === 'hdd-fairy')
+      ) {
+        return false
       }
       return true
     }
@@ -230,6 +517,10 @@ export async function activate(api) {
       scheduled = true
       queueMicrotask(() => {
         scheduled = false
+        if (recordLangChanged) {
+          recordLangChanged = false
+          usagePanel?.rerender()
+        }
         syncThemeMarks()
       })
     })
@@ -239,16 +530,29 @@ export async function activate(api) {
     }
   }
 
-  const media = window.matchMedia?.('(prefers-color-scheme: dark)')
-  media?.addEventListener?.('change', syncThemeMarks, { signal })
+  let recordLangChanged = false
+  const langObserver =
+    typeof MutationObserver === 'function'
+      ? new MutationObserver(() => {
+          recordLangChanged = true
+          usagePanel?.rerender()
+        })
+      : null
+  langObserver?.observe(root, { attributes: true, attributeFilter: ['lang'] })
+
   window.addEventListener('resize', scheduleHeroGeometry, { signal })
   const greetingTimer = setInterval(reconcileHero, 60_000)
 
   return () => {
     clearInterval(greetingTimer)
     domObserver?.disconnect()
-    offScheme()
+    langObserver?.disconnect()
     offStorage()
+    api.dom.unmark(root, 'theme-dark')
+    api.dom.unmark(root, 'theme-light')
+    api.dom.unmark(root, 'hero')
+    teardownUsage()
     teardownHero()
+    teardownBrand()
   }
 }

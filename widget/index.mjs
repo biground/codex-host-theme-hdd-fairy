@@ -1,3 +1,4 @@
+import { renderHddIcon } from '../shared/hdd-icons.mjs'
 import {
   BOOT_DURATION_MS,
   DEFAULT_SETTINGS,
@@ -95,13 +96,13 @@ export async function mount(root, api) {
   const bootSkipBtn = doc.createElement('button')
   bootSkipBtn.type = 'button'
   bootSkipBtn.className = 'hf-boot-skip'
-  bootSkipBtn.textContent = '跳过 / SKIP ▸'
+  bootSkipBtn.innerHTML = `跳过 / SKIP ${renderHddIcon('chevron-right')}`
   bootEl.append(bootFill, bootStage, bootBarWrap, bootSkipBtn)
 
   const skipBtn = doc.createElement('button')
   skipBtn.type = 'button'
   skipBtn.className = 'hf-skip'
-  skipBtn.textContent = 'SKIP ▸'
+  skipBtn.innerHTML = `SKIP ${renderHddIcon('chevron-right')}`
   screen.append(bg, hero, bootEl, skipBtn)
 
   const copyEl = doc.createElement('div')
@@ -130,7 +131,9 @@ export async function mount(root, api) {
   // Interactive status popover
   const bubble = doc.createElement('div')
   bubble.className = 'hf-bubble'
-  bubble.setAttribute('role', 'status')
+  bubble.setAttribute('role', 'region')
+  bubble.id = 'hf-tactical-status'
+  core.setAttribute('aria-controls', bubble.id)
   bubble.hidden = true
 
   layer.append(screen, copyEl, core, bubble)
@@ -168,7 +171,9 @@ export async function mount(root, api) {
 
     const head = doc.createElement('div')
     head.className = 'hf-bubble-head'
-    head.textContent = zh ? 'Fairy · Ⅲ型 状态' : 'Fairy · Unit III'
+    head.innerHTML = renderHddIcon('radio')
+    head.append(doc.createTextNode(zh ? 'FAIRY · III 型 AI' : 'FAIRY · UNIT III'))
+    bubble.setAttribute('aria-label', zh ? 'Fairy 战术状态卡' : 'Fairy tactical status')
 
     const row1 = doc.createElement('div')
     row1.className = 'hf-bubble-row'
@@ -176,7 +181,9 @@ export async function mount(root, api) {
     k1.className = 'hf-bubble-k'
     k1.textContent = zh ? '状态' : 'Mood'
     const v1 = doc.createElement('b')
-    v1.textContent = moodLabel(mood, locale)
+    v1.dataset.mood = mood
+    v1.innerHTML = renderHddIcon(mood === 'working' ? 'activity' : mood === 'done' ? 'check' : 'cpu', { size: 14 })
+    v1.append(doc.createTextNode(moodLabel(mood, locale)))
     row1.append(k1, v1)
 
     const row2 = doc.createElement('div')
@@ -198,7 +205,8 @@ export async function mount(root, api) {
     const replayBtn = doc.createElement('button')
     replayBtn.type = 'button'
     replayBtn.className = 'hf-mini-btn'
-    replayBtn.textContent = zh ? '重播开机' : 'Replay Boot'
+    replayBtn.innerHTML = renderHddIcon('play')
+    replayBtn.append(doc.createTextNode(zh ? '重播开机' : 'Replay Boot'))
     replayBtn.addEventListener('click', (event) => {
       event.stopPropagation()
       void startBoot()
@@ -207,7 +215,8 @@ export async function mount(root, api) {
     const resetBtn = doc.createElement('button')
     resetBtn.type = 'button'
     resetBtn.className = 'hf-mini-btn'
-    resetBtn.textContent = zh ? '位置复位' : 'Reset'
+    resetBtn.innerHTML = renderHddIcon('pin')
+    resetBtn.append(doc.createTextNode(zh ? '位置复位' : 'Reset'))
     resetBtn.addEventListener('click', (event) => {
       event.stopPropagation()
       savedPos = null
@@ -217,8 +226,39 @@ export async function mount(root, api) {
       syncLayout()
     })
 
+    const presets = doc.createElement('div')
+    presets.className = 'hf-bubble-presets'
+    presets.setAttribute('aria-label', zh ? '全站预设' : 'Global preset')
+    for (const [id, label] of [['amber', zh ? '黑金' : 'Amber'], ['street', zh ? '街头' : 'Street'], ['archive', zh ? '绳网' : 'Archive']]) {
+      const btn = doc.createElement('button')
+      btn.type = 'button'
+      btn.className = 'hf-mini-btn'
+      btn.setAttribute('aria-pressed', String(settings.globalPreset === id))
+      btn.innerHTML = renderHddIcon(`preset-${id}`, { size: 14 })
+      btn.append(doc.createTextNode(label))
+      btn.addEventListener('click', async () => {
+        const previous = settings
+        settings = { ...settings, globalPreset: id }
+        syncLayout()
+        try {
+          const saved = await api.storage.set(settings)
+          if (signal.aborted) return
+          settings = normalizeSettings(saved)
+          syncLayout()
+        } catch (error) {
+          if (signal.aborted) return
+          settings = previous
+          syncLayout()
+          const message = doc.createElement('div')
+          message.setAttribute('role', 'alert')
+          message.textContent = String(error?.message || error)
+          bubble.append(message)
+        }
+      })
+      presets.append(btn)
+    }
     actions.append(replayBtn, resetBtn)
-    bubble.append(head, row1, row2, sub, actions)
+    bubble.append(head, row1, row2, sub, presets, actions)
   }
 
   const syncLayout = () => {
@@ -227,13 +267,14 @@ export async function mount(root, api) {
     layer.dataset.hidden = hidden ? '1' : '0'
     layer.dataset.phase = phase
     layer.dataset.scheme = scheme
+    layer.dataset.preset = settings.globalPreset
     layer.dataset.drag = settings.dragEnabled ? '1' : '0'
     layer.dataset.dragging = dragState?.moved ? '1' : '0'
     core.setAttribute('aria-label', isZhLocale(locale) ? 'Fairy · 状态挂件' : 'Fairy · Status Widget')
     core.setAttribute('aria-expanded', String(bubbleOpen))
-    const skipText = isZhLocale(locale) ? '跳过 / SKIP ▸' : 'SKIP ▸'
-    skipBtn.textContent = skipText
-    bootSkipBtn.textContent = skipText
+    const skipText = `${isZhLocale(locale) ? '跳过 / SKIP' : 'SKIP'} ${renderHddIcon('chevron-right')}`
+    skipBtn.innerHTML = skipText
+    bootSkipBtn.innerHTML = skipText
     copyLine.textContent = greetLine(locale)
 
     const vp = viewport()
@@ -249,11 +290,13 @@ export async function mount(root, api) {
     bubble.hidden = false
     updateBubbleContent()
     const half = settings.eyeSize / 2
-    const flip = pos.x + half + 268 > vp.width
-    const left = Math.max(12, Math.min(vp.width - 260, flip ? pos.x - half - 260 : pos.x + half + 14))
-    const top = Math.max(96, Math.min(vp.height - 96, pos.y))
+    const flip = pos.x + half + 292 > vp.width
+    bubble.dataset.side = flip ? 'left' : 'right'
+    const left = Math.max(12, Math.min(vp.width - 288, flip ? pos.x - half - 290 : pos.x + half + 14))
+    const bubbleHeight = bubble.getBoundingClientRect().height
+    const top = Math.max(24, Math.min(vp.height - bubbleHeight - 24, pos.y - bubbleHeight / 2))
     bubble.style.left = `${Math.round(left)}px`
-    bubble.style.top = `${Math.round(top)}px`
+    bubble.style.top = `${Math.floor(top)}px`
   }
 
   const stopGreeting = () => {
@@ -409,6 +452,13 @@ export async function mount(root, api) {
       }
     }
   }, { signal })
+
+  doc.addEventListener('pointerdown', (event) => {
+    if (bubbleOpen && !event.composedPath().includes(core) && !event.composedPath().includes(bubble)) {
+      bubbleOpen = false
+      syncLayout()
+    }
+  }, { capture: true, signal })
 
   window.addEventListener('resize', () => syncLayout(), { signal })
   mobileMedia.addEventListener('change', () => {

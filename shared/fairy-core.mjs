@@ -9,27 +9,54 @@ export const MOBILE_MEDIA = '(max-width: 767px), (max-width: 1023px) and (hover:
 export const BLINK_MS = 300
 export const BOOT_DURATION_MS = 14530
 
+export const VALID_PRESETS = Object.freeze(['amber', 'street', 'archive'])
+export const VALID_PANEL_PRESETS = Object.freeze(['follow', ...VALID_PRESETS])
+export const PANEL_KEYS = Object.freeze(['shell', 'chat', 'composer', 'rightbar', 'settings', 'usage'])
+export const USAGE_PRESETS = VALID_PRESETS
+
 export const DEFAULT_SETTINGS = Object.freeze({
   showEye: true,
   dragEnabled: true,
   eyeSize: 120,
   playBootOnLaunch: true,
   enableWebTheme: true,
+  enableMotionJuice: true,
   webHeroWatermark: true,
+  enableChatAnimatedAvatar: true,
+  webUsagePanel: true,
+  webUsagePreset: 'follow',
+  webUsageDefaultExpanded: false,
+  globalPreset: 'amber',
+  panelShellEnabled: true,
+  panelShellPreset: 'follow',
+  panelChatEnabled: true,
+  panelChatPreset: 'follow',
+  panelComposerEnabled: true,
+  panelComposerPreset: 'follow',
+  panelRightbarEnabled: true,
+  panelRightbarPreset: 'follow',
+  panelSettingsEnabled: true,
+  panelSettingsPreset: 'follow',
+  webRightbarFilesEnhance: true,
 })
 
 export function normalizeSettings(raw) {
   const src = raw && typeof raw === 'object' ? raw : {}
   const num = Number(src.eyeSize)
   const eyeSize = Number.isFinite(num) ? Math.min(168, Math.max(72, Math.round(num / 4) * 4)) : DEFAULT_SETTINGS.eyeSize
-  return {
-    showEye: typeof src.showEye === 'boolean' ? src.showEye : DEFAULT_SETTINGS.showEye,
-    dragEnabled: typeof src.dragEnabled === 'boolean' ? src.dragEnabled : DEFAULT_SETTINGS.dragEnabled,
-    eyeSize,
-    playBootOnLaunch: typeof src.playBootOnLaunch === 'boolean' ? src.playBootOnLaunch : DEFAULT_SETTINGS.playBootOnLaunch,
-    enableWebTheme: typeof src.enableWebTheme === 'boolean' ? src.enableWebTheme : DEFAULT_SETTINGS.enableWebTheme,
-    webHeroWatermark: typeof src.webHeroWatermark === 'boolean' ? src.webHeroWatermark : DEFAULT_SETTINGS.webHeroWatermark,
-  }
+  return Object.fromEntries(Object.entries(DEFAULT_SETTINGS).map(([key, fallback]) => {
+    if (key === 'eyeSize') return [key, eyeSize]
+    const valid = key.endsWith('Preset')
+      ? (key === 'globalPreset' ? VALID_PRESETS : VALID_PANEL_PRESETS).includes(src[key])
+      : typeof src[key] === 'boolean'
+    return [key, valid ? src[key] : fallback]
+  }))
+}
+
+// Call with normalized settings; usage keeps its v2.1 storage key.
+export function resolvePanelPreset(settings, panelKey) {
+  const key = panelKey === 'usage' ? 'webUsagePreset' : `panel${panelKey[0].toUpperCase()}${panelKey.slice(1)}Preset`
+  return settings[key] === 'follow' ? settings.globalPreset : settings[key]
 }
 
 export function isZhLocale(locale) {
@@ -209,17 +236,34 @@ export const FAIRY_EYE_SVG = `<!-- SPDX-License-Identifier: Apache-2.0 Adapted f
   </g>
 </svg>`
 
+export function renderFairyEyeSvg(idSuffix = '') {
+  const safe = String(idSuffix || '').replace(/[^a-zA-Z0-9_-]/g, '')
+  if (!safe) return FAIRY_EYE_SVG
+  return FAIRY_EYE_SVG
+    .replaceAll('id="hf-outer-gradient"', `id="hf-outer-gradient-${safe}"`)
+    .replaceAll('url(#hf-outer-gradient)', `url(#hf-outer-gradient-${safe})`)
+    .replaceAll('id="hf-sclera-halo"', `id="hf-sclera-halo-${safe}"`)
+    .replaceAll('url(#hf-sclera-halo)', `url(#hf-sclera-halo-${safe})`)
+    .replaceAll('id="hf-outer-halo"', `id="hf-outer-halo-${safe}"`)
+    .replaceAll('url(#hf-outer-halo)', `url(#hf-outer-halo-${safe})`)
+    .replaceAll('id="hf-highlight-halo"', `id="hf-highlight-halo-${safe}"`)
+    .replaceAll('url(#hf-highlight-halo)', `url(#hf-highlight-halo-${safe})`)
+    .replaceAll('id="hf-lid-cover-clip"', `id="hf-lid-cover-clip-${safe}"`)
+    .replaceAll('url(#hf-lid-cover-clip)', `url(#hf-lid-cover-clip-${safe})`)
+}
+
 /**
  * Create a self-contained animated Fairy eye DOM node and behavior controller.
  * Returns { element, setMood, triggerGlitch, dispose }.
  */
-export function createFairyEye(doc, { signal, interactiveGlitch = true } = {}) {
+export function createFairyEye(doc, { signal, interactiveGlitch = true, idSuffix = '' } = {}) {
+  const eyeSvg = renderFairyEyeSvg(idSuffix)
   const eye = doc.createElement('div')
   eye.className = 'hf-eye'
   eye.innerHTML = [
     '<span class="hf-eye-halo" aria-hidden="true"></span>',
     '<span class="hf-eye-ring" aria-hidden="true"></span>',
-    `<div class="hf-eye-svg" aria-hidden="true">${FAIRY_EYE_SVG}</div>`,
+    `<div class="hf-eye-svg" aria-hidden="true">${eyeSvg}</div>`,
     '<span class="hf-glitch" aria-hidden="true"></span>',
     '<span class="hf-eye-scan" aria-hidden="true"></span>',
     '<span class="hf-eye-flash" aria-hidden="true"></span>',
@@ -267,7 +311,7 @@ export function createFairyEye(doc, { signal, interactiveGlitch = true } = {}) {
       const opacity = (0.5 + Math.random() * 0.5).toFixed(2)
       const bottom = Math.max(0, 100 - y - h).toFixed(1)
       bands.push(
-        `<span class="hf-gband" style="clip-path:inset(${y.toFixed(1)}% 0 ${bottom}% 0);transform:translateX(${dx.toFixed(1)}px);opacity:${opacity}">${FAIRY_EYE_SVG}</span>`,
+        `<span class="hf-gband" style="clip-path:inset(${y.toFixed(1)}% 0 ${bottom}% 0);transform:translateX(${dx.toFixed(1)}px);opacity:${opacity}">${eyeSvg}</span>`,
       )
       y += h + 5 + Math.random() * 20
     }

@@ -1,3 +1,4 @@
+import { renderHddIcon } from '../shared/hdd-icons.mjs'
 import {
   DEFAULT_SETTINGS,
   EYE_ANIMATION_CSS,
@@ -9,6 +10,7 @@ import {
   isZhLocale,
   moodLabel,
   normalizeSettings,
+  readDockPos,
   writeDockPos,
 } from '../shared/fairy-core.mjs'
 
@@ -39,8 +41,21 @@ function copy(locale) {
       : 'Applies to CH Web host UI (carbon-fiber dark panels, chat bubbles, sidebar highlights, and Microsoft YaHei UI font).',
     enableWebTheme: zh ? '启用 Web H.D.D 皮肤' : 'Enable Web H.D.D Theme',
     enableWebThemeDesc: zh ? '开启后在 CH Web 注入碳纤维主题与微软雅黑字体；关闭即即时恢复宿主外观。' : 'Inject carbon-fiber dark theme & Microsoft YaHei font into CH Web.',
+    enableMotionJuice: zh ? '启用绝区零交互动效（Juice）' : 'Enable ZZZ Interaction Juice',
+    enableMotionJuiceDesc: zh ? '开启 12 项机械键帽按压、45° 金属扫光、聚焦警戒条推进与战术点击瞬闪（遵循减弱动态设置）。' : 'Enable 12 ZZZ tactile animations: keycap press, metallic sheen, focus hazard march, and click bursts.',
     webHeroWatermark: zh ? '显示新会话 H.D.D 欢迎背景' : 'Show H.D.D Welcome Backdrop',
     webHeroWatermarkDesc: zh ? '在 CH Web 新会话页展示 H.D.D 标志、网状球体与时段问候语。' : 'Show the H.D.D logo, wireframe sphere, and greeting on CH Web new sessions.',
+    enableChatAnimatedAvatar: zh ? '对话气泡动态 Fairy 眼徽' : 'Animated Chat Fairy Avatar',
+    enableChatAnimatedAvatarDesc: zh ? '仅对视口内连续回复的组尾气泡按需挂载轻量动态眼徽，滚出视口即释放。' : 'Mount a lightweight animated Fairy eye on visible tail assistant bubbles; unmounts offscreen.',
+    webUsagePanel: zh ? '显示新会话算力用量终端' : 'Show New-Session Usage Telemetry',
+    webUsagePanelDesc: zh ? '在欢迎页上方显示绝区零风格 CodexHost 原生用量统计（概览 / 模型 / Harness / 配额）。' : 'Show the ZZZ-styled CodexHost usage telemetry bar & dashboard on new sessions.',
+    webUsagePreset: zh ? '用量面板视觉预设' : 'Usage Panel ZZZ Style',
+    webUsagePresetDesc: zh ? '支持黑金重工、新艾利都街头 HUD、绳网亮白档案卡三套绝区零风格。' : 'Switch between H.D.D Amber, Street Acid-Lime HUD, and Random Play Archive.',
+    presetAmber: zh ? '黑金重工' : 'Amber',
+    presetStreet: zh ? '街头 HUD' : 'Street',
+    presetArchive: zh ? '绳网白卡' : 'Archive',
+    webUsageDefaultExpanded: zh ? '默认展开完整用量面板' : 'Expand Usage Panel by Default',
+    webUsageDefaultExpandedDesc: zh ? '默认关闭：新会话以顶部迷你胶囊条展示，不挤压欢迎页，点击即可展开。' : 'Default off: starts as a compact top capsule bar so the welcome page stays spacious.',
     actionsSection: zh ? '快捷操作' : 'Quick Actions',
     replayBoot: zh ? '重播开机动画' : 'Replay Boot Animation',
     replayGreeting: zh ? '重播全息问候' : 'Replay Greeting',
@@ -145,6 +160,7 @@ export async function mount(root, api) {
     const t = copy(locale)
     const mobile = mobileMedia.matches
     page.dataset.scheme = scheme
+    page.dataset.preset = settings.globalPreset
     page.replaceChildren()
 
     const shell = doc.createElement('div')
@@ -154,10 +170,18 @@ export async function mount(root, api) {
     const hero = doc.createElement('section')
     hero.className = 'hf-hero'
 
-    const stage = doc.createElement('div')
+    const stage = doc.createElement('button')
+    stage.type = 'button'
     stage.className = 'hf-stage'
     stage.title = isZhLocale(locale) ? '点击触发故障花屏效果' : 'Click to trigger glitch effect'
-    stage.append(fairyEye.element)
+    stage.setAttribute('aria-label', stage.title)
+    fairyEye.element.style.width = `${settings.eyeSize}px`
+    fairyEye.element.style.height = `${settings.eyeSize}px`
+    const coords = doc.createElement('span')
+    coords.className = 'hf-coords'
+    const dock = readDockPos()
+    coords.textContent = dock ? `DOCK X:${dock.x} Y:${dock.y}` : 'DOCK X:25% Y:52%'
+    stage.append(fairyEye.element, coords)
     stage.addEventListener('click', () => fairyEye.triggerGlitch())
 
     const heroBody = doc.createElement('div')
@@ -206,7 +230,8 @@ export async function mount(root, api) {
       pill.type = 'button'
       pill.className = 'hf-pill'
       pill.setAttribute('aria-pressed', String(previewMood === mood))
-      pill.textContent = moodLabel(mood, locale)
+      pill.innerHTML = renderHddIcon({ idle: 'radio', thinking: 'cpu', working: 'activity', done: 'check' }[mood])
+      pill.append(doc.createTextNode(moodLabel(mood, locale)))
       pill.addEventListener('click', () => {
         previewMood = mood
         fairyEye.setMood(mood)
@@ -216,8 +241,43 @@ export async function mount(root, api) {
     }
 
     heroBody.append(heroTop, badges, greet, welcomeSub, moodBar)
+    if (mobile) {
+      const notice = doc.createElement('p')
+      notice.className = 'hf-mobile-notice'
+      notice.innerHTML = renderHddIcon('alert')
+      notice.append(doc.createTextNode(t.mobileHint))
+      heroBody.append(notice)
+    }
     hero.append(stage, heroBody)
     shell.append(hero)
+
+    const zh = isZhLocale(locale)
+    const presets = [
+      ['amber', zh ? '黑金重工' : 'H.D.D Amber', zh ? '经典法厄同重工终端 · 暗光沉浸' : 'Industrial armor for low-light focus'],
+      ['street', zh ? '新艾利都街头 HUD' : 'New Eridu Street HUD', zh ? '漫画描边 · 酸橙撞色硬投影' : 'Bold ink outlines and acid-lime HUD'],
+      ['archive', zh ? '绳网高反差档案' : 'Inter-Knot Archive', zh ? '电光蓝外壳 · 暖白阅读内胆' : 'Cobalt frame and warm-white reading cards'],
+    ]
+    const master = doc.createElement('section')
+    master.className = 'hf-master'
+    const masterTitle = doc.createElement('h2')
+    masterTitle.className = 'hf-card-title'
+    masterTitle.textContent = zh ? '全站视觉预设 // GLOBAL PRESET' : 'Global Visual Preset'
+    const presetCards = doc.createElement('div')
+    presetCards.className = 'hf-preset-cards'
+    for (const [id, label, desc] of presets) {
+      const btn = doc.createElement('button')
+      btn.type = 'button'
+      btn.className = 'hf-preset-card'
+      btn.dataset.preset = id
+      btn.setAttribute('aria-pressed', String(settings.globalPreset === id))
+      btn.innerHTML = `<span class="hf-preset-preview" aria-hidden="true"><i></i><i></i><i></i></span><span class="hf-preset-name">${renderHddIcon(`preset-${id}`, { size: 22 })}${String.fromCharCode(65 + presets.findIndex(([key]) => key === id))} · ${label}</span><span class="hf-preset-desc">${desc}</span><span class="hf-preset-active">${renderHddIcon(settings.globalPreset === id ? 'check' : 'chevron-right')}</span>`
+      btn.addEventListener('click', () => {
+        void updateSettings({ globalPreset: id }, zh ? `全站预设已切换至【${label}】，独立面板预设保持自选` : `Global preset: ${label}; panel overrides retained`)
+      })
+      presetCards.append(btn)
+    }
+    master.append(masterTitle, presetCards)
+    shell.append(master)
 
     // Settings grid
     const grid = doc.createElement('div')
@@ -228,7 +288,8 @@ export async function mount(root, api) {
     eyeCard.className = 'hf-card'
     const eyeTitle = doc.createElement('h2')
     eyeTitle.className = 'hf-card-title'
-    eyeTitle.textContent = t.eyeSection
+    eyeTitle.innerHTML = renderHddIcon('eye', { size: 20 })
+    eyeTitle.append(doc.createTextNode(t.eyeSection))
     const eyeDesc = doc.createElement('p')
     eyeDesc.className = 'hf-card-desc'
     eyeDesc.textContent = mobile ? t.mobileHint : t.eyeSectionDesc
@@ -242,12 +303,15 @@ export async function mount(root, api) {
     range.max = '168'
     range.step = '4'
     range.value = String(settings.eyeSize)
+    range.setAttribute('aria-label', t.eyeSize)
     range.disabled = mobile || !settings.showEye
     const sizeVal = doc.createElement('span')
     sizeVal.className = 'hf-range-val'
     sizeVal.textContent = `${settings.eyeSize}px`
     range.addEventListener('input', () => {
       sizeVal.textContent = `${range.value}px`
+      fairyEye.element.style.width = `${range.value}px`
+      fairyEye.element.style.height = `${range.value}px`
     })
     range.addEventListener('change', () => {
       void updateSettings({ eyeSize: Number(range.value) }, t.saved)
@@ -274,10 +338,21 @@ export async function mount(root, api) {
     webCard.className = 'hf-card'
     const webTitle = doc.createElement('h2')
     webTitle.className = 'hf-card-title'
-    webTitle.textContent = t.webSection
     const webDesc = doc.createElement('p')
     webDesc.className = 'hf-card-desc'
-    webDesc.textContent = api.hostTarget === 'desktop' ? t.desktopThemeNote : t.webSectionDesc
+    webDesc.textContent = api.hostTarget === 'desktop' ? t.desktopThemeNote : (zh ? '六项面板可独立启停和选色，也可跟随全站预设。' : 'Enable and style each of the six panels independently, or follow the global preset.')
+
+    webTitle.innerHTML = renderHddIcon('sliders', { size: 20 })
+    webTitle.append(doc.createTextNode(zh ? '分面板独立定制矩阵' : 'Independent Panel Presets'))
+    const juiceRow = makeRow(
+      t.enableMotionJuice,
+      t.enableMotionJuiceDesc,
+      makeSwitch(settings.enableMotionJuice, !settings.enableWebTheme, t.enableMotionJuice, () => {
+        void updateSettings({ enableMotionJuice: !settings.enableMotionJuice }, t.saved)
+      }),
+    )
+    juiceRow.dataset.setting = 'enableMotionJuice'
+    juiceRow.querySelector('.hf-row-label')?.insertAdjacentHTML('afterbegin', renderHddIcon('spark'))
 
     webCard.append(
       webTitle,
@@ -285,17 +360,63 @@ export async function mount(root, api) {
       makeRow(t.enableWebTheme, t.enableWebThemeDesc, makeSwitch(settings.enableWebTheme, false, t.enableWebTheme, () => {
         void updateSettings({ enableWebTheme: !settings.enableWebTheme }, t.saved)
       })),
-      makeRow(t.webHeroWatermark, t.webHeroWatermarkDesc, makeSwitch(settings.webHeroWatermark, !settings.enableWebTheme, t.webHeroWatermark, () => {
-        void updateSettings({ webHeroWatermark: !settings.webHeroWatermark }, t.saved)
-      })),
+      juiceRow,
     )
+    const panels = [
+      ['panelShellEnabled', 'panelShellPreset', 'layout-sidebar', zh ? '侧栏、顶栏与全局浮层' : 'Sidebar, header & overlays'],
+      ['panelChatEnabled', 'panelChatPreset', 'message-square', zh ? '欢迎页、对话流与工具卡' : 'Welcome, conversation & tool cards', ['webHeroWatermark', 'enableChatAnimatedAvatar']],
+      ['panelComposerEnabled', 'panelComposerPreset', 'terminal', zh ? '输入舱、排队与审批问答' : 'Composer, queue & approvals'],
+      ['panelRightbarEnabled', 'panelRightbarPreset', 'folder', zh ? '右侧边栏工作台' : 'Right sidebar workbench', ['webRightbarFilesEnhance']],
+      ['panelSettingsEnabled', 'panelSettingsPreset', 'puzzle', zh ? '设置中心与插件管理' : 'Settings & plugin manager'],
+      ['webUsagePanel', 'webUsagePreset', 'cpu', zh ? '新会话算力用量面板' : 'New-session usage panel', ['webUsageDefaultExpanded']],
+    ]
+    const subMeta = {
+      webHeroWatermark: { label: t.webHeroWatermark, desc: '', icon: '' },
+      enableChatAnimatedAvatar: { label: t.enableChatAnimatedAvatar, desc: t.enableChatAnimatedAvatarDesc, icon: 'eye' },
+      webRightbarFilesEnhance: { label: zh ? '增强文件树与文件详情' : 'Enhance file tree & details', desc: '', icon: '' },
+      webUsageDefaultExpanded: { label: t.webUsageDefaultExpanded, desc: '', icon: '' },
+    }
+    panels.forEach(([enabledKey, presetKey, icon, label, subKeys], index) => {
+      const controls = doc.createElement('div')
+      controls.className = 'hf-panel-controls'
+      const select = doc.createElement('select')
+      select.className = 'hf-select'
+      select.setAttribute('aria-label', `${label} · ${zh ? '预设' : 'Preset'}`)
+      select.dataset.setting = presetKey
+      select.disabled = !settings.enableWebTheme || !settings[enabledKey]
+      for (const [value, text] of [['follow', zh ? '跟随全站' : 'Follow global'], ...presets.map(([id, name]) => [id, name])]) {
+        const option = doc.createElement('option')
+        option.value = value
+        option.textContent = text
+        select.append(option)
+      }
+      select.value = settings[presetKey]
+      select.addEventListener('change', () => { void updateSettings({ [presetKey]: select.value }, t.saved) })
+      controls.append(select, makeSwitch(settings[enabledKey], !settings.enableWebTheme, label, () => {
+        void updateSettings({ [enabledKey]: !settings[enabledKey] }, t.saved)
+      }))
+      const row = makeRow(label, `SYS-0${index + 1}`, controls)
+      row.dataset.panel = presetKey
+      const rowLabel = row.querySelector('.hf-row-label')
+      rowLabel.insertAdjacentHTML('afterbegin', renderHddIcon(icon))
+      const group = doc.createElement('div')
+      group.className = 'hf-panel-group'
+      group.append(row)
+      for (const subKey of subKeys ?? []) {
+        const meta = subMeta[subKey]
+        const subRow = makeRow(meta.label, meta.desc, makeSwitch(settings[subKey], !settings.enableWebTheme || !settings[enabledKey], meta.label, () => {
+          void updateSettings({ [subKey]: !settings[subKey] }, t.saved)
+        }))
+        subRow.dataset.setting = subKey
+        if (meta.icon) subRow.querySelector('.hf-row-label')?.insertAdjacentHTML('afterbegin', renderHddIcon(meta.icon, { size: 15 }))
+        group.append(subRow)
+      }
+      webCard.append(group)
+    })
 
     // Quick Actions Card
     const actCard = doc.createElement('section')
     actCard.className = 'hf-card is-full'
-    const actTitle = doc.createElement('h2')
-    actTitle.className = 'hf-card-title'
-    actTitle.textContent = t.actionsSection
 
     const actions = doc.createElement('div')
     actions.className = 'hf-actions'
@@ -304,7 +425,8 @@ export async function mount(root, api) {
     replayBootBtn.type = 'button'
     replayBootBtn.className = 'hf-btn is-primary'
     replayBootBtn.disabled = mobile
-    replayBootBtn.textContent = t.replayBoot
+    replayBootBtn.innerHTML = renderHddIcon('play')
+    replayBootBtn.append(doc.createTextNode(t.replayBoot))
     replayBootBtn.addEventListener('click', () => {
       dispatchFairyAction({ type: 'replay-boot' })
       showToast(t.replayedBoot)
@@ -314,7 +436,8 @@ export async function mount(root, api) {
     replayBtn.type = 'button'
     replayBtn.className = 'hf-btn'
     replayBtn.disabled = mobile
-    replayBtn.textContent = t.replayGreeting
+    replayBtn.innerHTML = renderHddIcon('spark')
+    replayBtn.append(doc.createTextNode(t.replayGreeting))
     replayBtn.addEventListener('click', () => {
       dispatchFairyAction({ type: 'replay-greeting' })
       showToast(t.replayed)
@@ -324,17 +447,20 @@ export async function mount(root, api) {
     resetBtn.type = 'button'
     resetBtn.className = 'hf-btn'
     resetBtn.disabled = mobile
-    resetBtn.textContent = t.resetPos
+    resetBtn.innerHTML = renderHddIcon('pin')
+    resetBtn.append(doc.createTextNode(t.resetPos))
     resetBtn.addEventListener('click', () => {
       writeDockPos(null)
       dispatchFairyAction({ type: 'reset-pos' })
+      render()
       showToast(t.resetDone)
     })
 
     const defaultsBtn = doc.createElement('button')
     defaultsBtn.type = 'button'
     defaultsBtn.className = 'hf-btn is-danger'
-    defaultsBtn.textContent = t.restoreDefaults
+    defaultsBtn.innerHTML = renderHddIcon('reset')
+    defaultsBtn.append(doc.createTextNode(t.restoreDefaults))
     defaultsBtn.addEventListener('click', () => {
       writeDockPos(null)
       dispatchFairyAction({ type: 'reset-pos' })
@@ -351,9 +477,10 @@ export async function mount(root, api) {
     meta.textContent = t.credits
 
     actions.append(replayBootBtn, replayBtn, resetBtn, defaultsBtn)
-    actCard.append(actTitle, actions, toast, meta)
+    heroBody.append(actions)
+    actCard.append(toast, meta)
 
-    grid.append(eyeCard, webCard, actCard)
+    grid.append(webCard, eyeCard, actCard)
     shell.append(grid)
     page.append(shell)
   }
